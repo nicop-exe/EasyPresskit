@@ -205,15 +205,15 @@ function CreatorStudio() {
     };
 
     // 1. Check Payload Size Limit (Firestore max is 1MB)
-    alert('Checkpoint A: Starting size check');
-    const estimatedPayload = JSON.stringify({
+    const payloadString = JSON.stringify({
       artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
     });
 
-    // Simple byte size approximation
-    const sizeInBytes = new Blob([estimatedPayload]).size;
-    const sizeInMB = sizeInBytes / (1024 * 1024);
-    alert(`Checkpoint B: Payload is ${sizeInMB.toFixed(2)} MB`);
+    // String length is a good enough proxy for bytes in base64/JSON context
+    const sizeInChars = payloadString.length;
+    const sizeInMB = sizeInChars / (1024 * 1024);
+    console.log(`Payload size: ${sizeInMB.toFixed(2)} MB`);
+    alert(`Checkpoint A: Size is ${sizeInMB.toFixed(2)} MB`);
 
     if (sizeInMB > 0.95) {
       setSaving(false);
@@ -222,25 +222,26 @@ function CreatorStudio() {
     }
 
     try {
-      alert('Checkpoint C: Calling savePresskit service...');
-      // Race the save operation against a 30-second timeout
+      alert('Checkpoint B: Initiating Database Write...');
+      // Race the save operation against a 90-second timeout
       const savePromise = savePresskit({
         artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Connection timed out. Uploading photos may take a minute on slow connections.')), 60000);
+        setTimeout(() => reject(new Error('Connection timed out. If you have many photos, try removing one.')), 90000);
       });
 
       const { slug } = await Promise.race([savePromise, timeoutPromise]);
+      alert('Checkpoint C: Write complete! Finalizing link...');
 
       const base = window.location.origin + window.location.pathname;
       const finalLink = `${base}#/artist/${slug}`;
       setSavedLink(finalLink);
-      alert(`Success! Presskit saved to: ${finalLink}`);
+      alert('SUCCESS! Presskit saved. Click the Red Button to view.');
     } catch (err) {
-      console.error(err);
-      alert(`Error saving presskit: ${err.message || 'Unknown error'}`);
+      console.error('Save error details:', err);
+      alert(`SAVE FAILED: ${err.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -255,7 +256,7 @@ function CreatorStudio() {
         borderBottom: '1px solid var(--border)',
       }}>
         <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', color: '#fff', letterSpacing: '0.1em' }}>
-          EASYPRESSKIT
+          EASYPRESSKIT <span style={{ fontSize: '0.6rem', color: '#ff1744' }}>v2.4</span>
         </h1>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
           Create your official press kit

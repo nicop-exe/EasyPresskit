@@ -104,8 +104,7 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 position: 'relative',
                 width: '100%',
                 display: 'flex', flexDirection: 'column',
-                height: isMobile ? '200px' : 'auto',
-                minHeight: isMobile ? '200px' : '200px',
+                height: '220px', // Fixed height for absolute alignment
                 border: `1px solid ${borderColor}`, borderRadius: '8px',
                 background: bgColor, cursor: 'pointer',
                 transition: 'all 0.25s ease',
@@ -120,9 +119,9 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 onClick={onToggle}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                style={{ width: '100%', height: isMobile ? '85px' : '115px', position: 'relative', flexShrink: 0 }}
+                style={{ width: '100%', height: '100px', position: 'relative', flexShrink: 0 }}
             >
-                <Canvas camera={{ position: [3, 3, 3], fov: isMobile ? 32 : 40 }} style={{ background: 'transparent' }}>
+                <Canvas camera={{ position: [3, 3, 3], fov: 28 }} style={{ background: 'transparent' }}>
                     <ambientLight intensity={1.2} />
                     <directionalLight position={[3, 4, 3]} intensity={1} />
                     <directionalLight position={[-2, 2, -2]} intensity={0.4} />
