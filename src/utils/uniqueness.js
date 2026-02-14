@@ -1,39 +1,44 @@
 /**
- * Generates a deterministic hash from a string
+ * Generate a clean style palette based on concept input.
+ * Instead of hue-shifting (which looked bad), we pick from
+ * a curated set of professional palettes.
  */
-const hashString = (str) => {
+
+const PALETTES = [
+  { primary: '#00f2ff', secondary: '#ff00ff', accent: '#39ff14' },   // Cyan / Magenta
+  { primary: '#a855f7', secondary: '#ec4899', accent: '#f59e0b' },   // Purple / Pink
+  { primary: '#22d3ee', secondary: '#8b5cf6', accent: '#10b981' },   // Teal / Violet
+  { primary: '#f43f5e', secondary: '#f97316', accent: '#eab308' },   // Rose / Orange
+  { primary: '#3b82f6', secondary: '#06b6d4', accent: '#14b8a6' },   // Blue / Cyan
+  { primary: '#84cc16', secondary: '#22c55e', accent: '#10b981' },   // Lime / Green
+];
+
+function hashCode(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32bit integer
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
   }
   return Math.abs(hash);
-};
+}
 
-/**
- * Returns a unique style object based on user input
- */
-export const generateUniqueStyle = (input) => {
-  if (!input) return {
-    primaryColor: '#00f2ff',
-    secondaryColor: '#ff00ff',
-    glowIntensity: 1,
-    fontVariant: 'Rajdhani'
-  };
+export function generateUniqueStyle(concept) {
+  if (!concept || !concept.trim()) {
+    return {
+      primaryColor: '#00f2ff',
+      secondaryColor: '#ff00ff',
+      accentColor: '#39ff14',
+      glowIntensity: 1,
+    };
+  }
 
-  const hash = hashString(input);
-  
-  // Deterministic colors based on hash
-  const hues = [
-    (hash % 360), // Primary Hue
-    ((hash + 120) % 360) // Secondary Hue (Triadic-ish)
-  ];
+  const hash = hashCode(concept.trim().toLowerCase());
+  const palette = PALETTES[hash % PALETTES.length];
 
   return {
-    primaryColor: `hsl(${hues[0]}, 100%, 50%)`,
-    secondaryColor: `hsl(${hues[1]}, 100%, 50%)`,
-    glowIntensity: (hash % 10) / 5 + 0.5, // 0.5 to 2.5
-    fontVariant: hash % 2 === 0 ? 'Orbitron' : 'Rajdhani'
+    primaryColor: palette.primary,
+    secondaryColor: palette.secondary,
+    accentColor: palette.accent,
+    glowIntensity: 1,
   };
-};
+}
