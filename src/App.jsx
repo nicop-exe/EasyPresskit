@@ -45,31 +45,44 @@ const SocialInput = ({ icon: Icon, placeholder, value, onChange, color }) => (
 
 /* ── Creator Studio ── */
 function CreatorStudio() {
-  // Initialize state from localStorage if available
-  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('ep_profilePic') || null);
-  const [bio, setBio] = useState(() => localStorage.getItem('ep_bio') || '');
-  const [hospitality, setHospitality] = useState(() => localStorage.getItem('ep_hospitality') || '');
-  const [artistName, setArtistName] = useState(() => localStorage.getItem('ep_artistName') || '');
-  const [artistConcept, setArtistConcept] = useState(() => localStorage.getItem('ep_artistConcept') || '');
+  // Initialize state from localStorage if available (v2 keys)
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('ep_profilePic_v2') || null);
+  const [bio, setBio] = useState(() => localStorage.getItem('ep_bio_v2') || '');
+  const [hospitality, setHospitality] = useState(() => localStorage.getItem('ep_hospitality_v2') || '');
+  const [artistName, setArtistName] = useState(() => localStorage.getItem('ep_artistName_v2') || '');
+  const [artistConcept, setArtistConcept] = useState(() => localStorage.getItem('ep_artistConcept_v2') || '');
+
+  // Pro State
+  const [isPro, setIsPro] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState('');
 
   const [selectedGear, setSelectedGear] = useState(() => {
-    const saved = localStorage.getItem('ep_selectedGear');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('ep_selectedGear_v2');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
   });
 
   const [cdjCount, setCdjCount] = useState(() => {
-    const saved = localStorage.getItem('ep_cdjCount');
-    return saved ? parseInt(saved, 10) : 2;
+    try {
+      const saved = localStorage.getItem('ep_cdjCount_v2');
+      return saved ? parseInt(saved, 10) : 2;
+    } catch (e) { return 2; }
   });
 
   const [socials, setSocials] = useState(() => {
-    const saved = localStorage.getItem('ep_socials');
-    return saved ? JSON.parse(saved) : { instagram: '', soundcloud: '', twitter: '', youtube: '' };
+    try {
+      const saved = localStorage.getItem('ep_socials_v2');
+      return saved ? JSON.parse(saved) : { instagram: '', soundcloud: '', twitter: '', youtube: '' };
+    } catch (e) { return { instagram: '', soundcloud: '', twitter: '', youtube: '' }; }
   });
 
   const [media, setMedia] = useState(() => {
-    const saved = localStorage.getItem('ep_media');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('ep_media_v2');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
   });
 
   const [saving, setSaving] = useState(false);
@@ -77,27 +90,43 @@ function CreatorStudio() {
 
   const ACCENT = '#ff1744';
 
-  // Persistence Effect
+  // Persistence Effect (v2 keys)
   useEffect(() => {
     try {
-      localStorage.setItem('ep_artistName', artistName);
-      localStorage.setItem('ep_artistConcept', artistConcept);
-      localStorage.setItem('ep_bio', bio);
-      localStorage.setItem('ep_hospitality', hospitality);
-      localStorage.setItem('ep_selectedGear', JSON.stringify(selectedGear));
-      localStorage.setItem('ep_cdjCount', cdjCount);
-      localStorage.setItem('ep_socials', JSON.stringify(socials));
-      localStorage.setItem('ep_media', JSON.stringify(media));
+      localStorage.setItem('ep_artistName_v2', artistName);
+      localStorage.setItem('ep_artistConcept_v2', artistConcept);
+      localStorage.setItem('ep_bio_v2', bio);
+      localStorage.setItem('ep_hospitality_v2', hospitality);
+      localStorage.setItem('ep_selectedGear_v2', JSON.stringify(selectedGear));
+      localStorage.setItem('ep_cdjCount_v2', cdjCount);
+      localStorage.setItem('ep_socials_v2', JSON.stringify(socials));
+      localStorage.setItem('ep_media_v2', JSON.stringify(media));
 
       if (profilePic) {
-        localStorage.setItem('ep_profilePic', profilePic);
+        localStorage.setItem('ep_profilePic_v2', profilePic);
       } else {
-        localStorage.removeItem('ep_profilePic');
+        localStorage.removeItem('ep_profilePic_v2');
+      }
+
+      // Simulate checking pro status
+      const savedPro = localStorage.getItem('ep_isPro_v2');
+      if (savedPro === 'true') {
+        // Only set logic validation here if needed, but since we read on render...
+        // Actually, state is local, so we just trust localStorage for MVP
+        if (!isPro) setIsPro(true);
       }
     } catch (error) {
       console.warn('LocalStorage quota exceeded or error:', error);
     }
-  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic]);
+  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic, isPro]);
+
+  // Helper to check pro feature
+  const checkProFeature = (featureName) => {
+    if (isPro) return true;
+    setPaywallFeature(featureName);
+    setShowPaywall(true);
+    return false;
+  };
 
   const toggleGear = (name) => {
     setSelectedGear(prev => prev.includes(name) ? prev.filter(g => g !== name) : [...prev, name]);
@@ -106,6 +135,14 @@ function CreatorStudio() {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Free Tier: Max 2MB check
+      if (!isPro && file.size > 2 * 1024 * 1024) {
+        alert('Free Plan Limit: Please upload images smaller than 2MB or Upgrade to Pro.');
+        setPaywallFeature('High-Res Profile Photo');
+        setShowPaywall(true);
+        return;
+      }
+
       const reader = new FileReader();
 
       // Smart Compression: If original is already < 200KB, don't re-encode
@@ -122,7 +159,8 @@ function CreatorStudio() {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const MAX_SIZE = 800;
+          // Pro: 1600px, Free: 800px
+          const MAX_SIZE = isPro ? 1600 : 800;
 
           if (width > height) {
             if (width > MAX_SIZE) {
@@ -139,7 +177,9 @@ function CreatorStudio() {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          // Pro: 0.8, Free: 0.6
+          const quality = isPro ? 0.8 : 0.6;
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
           setProfilePic(dataUrl);
         };
         img.src = event.target.result;
@@ -196,8 +236,6 @@ function CreatorStudio() {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-
-          // Pro: 0.8, Free: 0.5
           const quality = isPro ? 0.8 : 0.5;
           const dataUrl = canvas.toDataURL('image/jpeg', quality);
           setMedia(prev => [...prev, { type: 'image', url: dataUrl }]);
@@ -214,8 +252,6 @@ function CreatorStudio() {
 
     if (media.length >= 6) { return alert('Max 6 media items allowed'); }
     if (!url) return;
-
-    // Extract ID (supports youtu.be and youtube.com)
     let videoId = '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
@@ -224,7 +260,6 @@ function CreatorStudio() {
     } else {
       return alert('Invalid YouTube URL');
     }
-
     setMedia(prev => [...prev, { type: 'youtube', url: videoId }]);
   };
 
@@ -239,52 +274,36 @@ function CreatorStudio() {
   };
 
   const updateSocial = (key) => (e) => {
-    // Only sanitize on blur or submit, but here we just update state. 
-    // The ensureHttps will be applied before saving or in the input onBlur if we want.
-    // Actually, let's just keep the input raw but sanitize before save.
     setSocials(prev => ({ ...prev, [key]: e.target.value }));
   };
 
   const handleSave = async () => {
     if (!artistName.trim()) { alert('Please enter an artist name'); return; }
     setSaving(true); setSavedLink(null);
-
-    // Sanitize socials
     const sanitizedSocials = {
       instagram: ensureHttps(socials.instagram),
       soundcloud: ensureHttps(socials.soundcloud),
       twitter: ensureHttps(socials.twitter),
       youtube: ensureHttps(socials.youtube),
     };
-
-    // 1. Check Payload Size Limit (Firestore max is 1MB)
     const payloadString = JSON.stringify({
       artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
     });
-
-    // String length is a good enough proxy for bytes in base64/JSON context
     const sizeInChars = payloadString.length;
     const sizeInMB = sizeInChars / (1024 * 1024);
-    console.log(`Payload size: ${sizeInMB.toFixed(2)} MB`);
-
     if (sizeInMB > 0.95) {
       setSaving(false);
-      alert(`Data too large (${sizeInMB.toFixed(2)} MB). Firestore has a 1MB limit. Please remove some photos or use smaller ones.`);
+      alert(`Data too large (${sizeInMB.toFixed(2)} MB). Firestore has a 1MB limit.`);
       return;
     }
-
     try {
-      // Race the save operation against a 90-second timeout
       const savePromise = savePresskit({
         artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
       });
-
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Connection timed out. If you have many photos, try removing one.')), 90000);
+        setTimeout(() => reject(new Error('Connection timed out.')), 90000);
       });
-
       const { slug } = await Promise.race([savePromise, timeoutPromise]);
-
       const base = window.location.origin + window.location.pathname;
       const finalLink = `${base}#/artist/${slug}`;
       setSavedLink(finalLink);
@@ -298,7 +317,6 @@ function CreatorStudio() {
 
   return (
     <div className="app-container">
-      {/* Header */}
       <header style={{
         textAlign: 'center',
         padding: '2.5rem 2rem 1.5rem',
@@ -329,32 +347,25 @@ function CreatorStudio() {
               if (confirm('Proceed to Stripe Checkout? (Simulation)')) {
                 alert('Payment Successful! You are now a Pro member.');
                 setIsPro(true);
-                localStorage.setItem('ep_isPro', 'true');
+                localStorage.setItem('ep_isPro_v2', 'true');
               }
             }} />
           </div>
         )}
 
         <div className="grid grid-2">
-
           {/* ── LEFT: Editor ── */}
           <section className="glass-panel">
-
-            {/* Artist Name */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label><User size={14} /> Artist Name</label>
               <input type="text" placeholder="e.g. DJ Tiesto" value={artistName}
                 onChange={(e) => setArtistName(e.target.value)} />
             </div>
-
-            {/* Concept */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label>Genre / Style</label>
               <input type="text" placeholder="e.g. Dark Techno" value={artistConcept}
                 onChange={(e) => setArtistConcept(e.target.value)} />
             </div>
-
-            {/* Photo */}
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
               <div style={{
                 width: '130px', height: '130px',
@@ -372,22 +383,16 @@ function CreatorStudio() {
               </button>
               <input id="photo-input" type="file" hidden onChange={handlePhotoUpload} accept="image/*" />
             </div>
-
-            {/* Bio */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label><FileText size={14} /> Biography</label>
               <textarea rows="4" placeholder="Tell your story..." value={bio}
                 onChange={(e) => setBio(e.target.value)} />
             </div>
-
-            {/* Hospitality */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label>Hospitality Rider</label>
               <textarea rows="3" placeholder="What do you need backstage?" value={hospitality}
                 onChange={(e) => setHospitality(e.target.value)} />
             </div>
-
-            {/* Social Links */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ marginBottom: '0.7rem' }}>Social Links</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -397,11 +402,8 @@ function CreatorStudio() {
                 <SocialInput icon={Youtube} placeholder="https://youtube.com/..." value={socials.youtube} onChange={updateSocial('youtube')} color="#FF0000" />
               </div>
             </div>
-
-            {/* Media Gallery */}
             <div>
               <label style={{ marginBottom: '0.7rem' }}>Media Gallery (Max 6 items)</label>
-
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
                 <input
                   type="text"
@@ -420,7 +422,6 @@ function CreatorStudio() {
                   Add Video
                 </button>
               </div>
-
               <div style={{ marginBottom: '0.8rem' }}>
                 <button onClick={() => document.getElementById('media-upload').click()}
                   style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px dashed #444' }}>
@@ -428,8 +429,6 @@ function CreatorStudio() {
                 </button>
                 <input id="media-upload" type="file" hidden onChange={handleMediaUpload} accept="image/*" />
               </div>
-
-              {/* Media List */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 {media.map((item, index) => (
                   <div key={index} style={{ position: 'relative', aspectRatio: '16/9', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
@@ -458,8 +457,6 @@ function CreatorStudio() {
 
           {/* ── RIGHT: Live Preview ── */}
           <section className="glass-panel accent-border">
-
-            {/* Artist Header */}
             <div style={{
               position: 'relative',
               padding: '2rem 1.5rem',
@@ -468,8 +465,6 @@ function CreatorStudio() {
               borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.05)',
             }}>
-
-
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
                 {profilePic ? (
                   <motion.img
@@ -507,8 +502,6 @@ function CreatorStudio() {
                   )}
                 </div>
               </div>
-
-              {/* Diagonal accent stripe */}
               <div style={{
                 position: 'absolute', top: 0, right: 0,
                 width: '60px', height: '100%',
@@ -517,7 +510,6 @@ function CreatorStudio() {
               }} />
             </div>
 
-            {/* Biography */}
             <div style={{ marginBottom: '1.5rem' }}>
               <div className="section-title">About</div>
               <p style={{ color: '#bbb', lineHeight: '1.7', fontSize: '0.95rem' }}>
@@ -525,7 +517,6 @@ function CreatorStudio() {
               </p>
             </div>
 
-            {/* Equipment List */}
             <div style={{ marginBottom: '1.5rem' }}>
               <div className="section-title">Technical Rider</div>
               <TechRider
@@ -536,7 +527,6 @@ function CreatorStudio() {
               />
             </div>
 
-            {/* Hospitality */}
             {hospitality && (
               <div style={{ marginBottom: '1.5rem' }}>
                 <div className="section-title">Hospitality Rider</div>
@@ -544,7 +534,6 @@ function CreatorStudio() {
               </div>
             )}
 
-            {/* Social preview */}
             {Object.values(socials).some(v => v) && (
               <div style={{ marginBottom: '1.5rem' }}>
                 <div className="section-title">Follow</div>
@@ -557,7 +546,6 @@ function CreatorStudio() {
               </div>
             )}
 
-            {/* Save */}
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1rem' }}>
               <button style={{
                 width: '100%', opacity: saving ? 0.6 : 1,
@@ -568,7 +556,6 @@ function CreatorStudio() {
                   : <><Share2 size={16} style={{ marginRight: '0.5rem' }} /> Generate Link</>
                 }
               </button>
-
               {savedLink && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
