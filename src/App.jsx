@@ -65,6 +65,15 @@ function CreatorStudio() {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
+
+      // Smart Compression: If original is already < 200KB, don't re-encode
+      if (file.size < 200 * 1024) {
+        console.log('Using small profile pic directly:', (file.size / 1024).toFixed(2), 'KB');
+        reader.onload = (event) => setProfilePic(event.target.result);
+        reader.readAsDataURL(file);
+        return;
+      }
+
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
@@ -104,6 +113,15 @@ function CreatorStudio() {
       if (file.size > 5 * 1024 * 1024) return alert('File too large (max 5MB source)');
 
       const reader = new FileReader();
+
+      // Smart Compression: If original is already < 200KB, don't re-encode
+      if (file.size < 200 * 1024) {
+        console.log('Using small gallery pic directly:', (file.size / 1024).toFixed(2), 'KB');
+        reader.onload = (event) => setMedia(prev => [...prev, { type: 'image', url: event.target.result }]);
+        reader.readAsDataURL(file);
+        return;
+      }
+
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
