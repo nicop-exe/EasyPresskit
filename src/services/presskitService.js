@@ -1,18 +1,9 @@
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 /**
- * Convert a data URL (base64 image) to a Blob for upload.
+ * Generate a URL-safe slug from an artist name.
  */
-function dataURLtoBlob(dataURL) {
-    const [header, data] = dataURL.split(',');
-    const mime = header.match(/:(.*?);/)[1];
-    const binary = atob(data);
-    const array = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
-    return new Blob([array], { type: mime });
-}
 
 /**
  * Generate a URL-safe slug from an artist name.
@@ -33,13 +24,10 @@ export async function savePresskit({ artistName, artistConcept, bio, hospitality
     const slug = generateSlug(artistName);
     let photoURL = null;
 
-    // Upload profile photo if it's a data URL
-    if (profilePic && profilePic.startsWith('data:')) {
-        const blob = dataURLtoBlob(profilePic);
-        const photoRef = ref(storage, `presskits/${slug}/photo.jpg`);
-        await uploadBytes(photoRef, blob);
-        photoURL = await getDownloadURL(photoRef);
-    } else if (profilePic) {
+    // Save profile photo as base64 string directly
+    // Ideally we should compress this on the client side, but for now 
+    // we assume the user uploads a reasonable size or the string fits in Firestore (limit 1MB)
+    if (profilePic) {
         photoURL = profilePic;
     }
 
