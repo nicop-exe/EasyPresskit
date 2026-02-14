@@ -68,6 +68,11 @@ export const PresskitView = ({ slug }) => {
 
     const socials = data.socials || {};
     const hasSocials = Object.values(socials).some(v => v);
+    const verifyUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        return `https://${url}`;
+    };
 
     return (
         <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#e0e0e0', fontFamily: 'Rajdhani, sans-serif' }}>
@@ -228,10 +233,10 @@ export const PresskitView = ({ slug }) => {
                             Follow
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.6rem' }}>
-                            <SocialButton href={socials.instagram} icon={Instagram} label="Instagram" color="#E1306C" />
-                            <SocialButton href={socials.soundcloud} icon={Music} label="SoundCloud" color="#ff5500" />
-                            <SocialButton href={socials.twitter} icon={Twitter} label="X / Twitter" color="#ffffff" />
-                            <SocialButton href={socials.youtube} icon={Youtube} label="YouTube" color="#FF0000" />
+                            <SocialButton href={verifyUrl(socials.instagram)} icon={Instagram} label="Instagram" color="#E1306C" />
+                            <SocialButton href={verifyUrl(socials.soundcloud)} icon={Music} label="SoundCloud" color="#ff5500" />
+                            <SocialButton href={verifyUrl(socials.twitter)} icon={Twitter} label="X / Twitter" color="#ffffff" />
+                            <SocialButton href={verifyUrl(socials.youtube)} icon={Youtube} label="YouTube" color="#FF0000" />
                         </div>
                     </section>
                 )}

@@ -96,13 +96,35 @@ function CreatorStudio() {
     }
   };
 
-  const updateSocial = (key) => (e) => setSocials(prev => ({ ...prev, [key]: e.target.value }));
+  const ensureHttps = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
+
+  const updateSocial = (key) => (e) => {
+    // Only sanitize on blur or submit, but here we just update state. 
+    // The ensureHttps will be applied before saving or in the input onBlur if we want.
+    // Actually, let's just keep the input raw but sanitize before save.
+    setSocials(prev => ({ ...prev, [key]: e.target.value }));
+  };
 
   const handleSave = async () => {
     if (!artistName.trim()) { alert('Please enter an artist name'); return; }
     setSaving(true); setSavedLink(null);
+
+    // Sanitize socials
+    const sanitizedSocials = {
+      instagram: ensureHttps(socials.instagram),
+      soundcloud: ensureHttps(socials.soundcloud),
+      twitter: ensureHttps(socials.twitter),
+      youtube: ensureHttps(socials.youtube),
+    };
+
     try {
-      const { slug } = await savePresskit({ artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials });
+      const { slug } = await savePresskit({
+        artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials
+      });
       const base = window.location.origin + window.location.pathname;
       setSavedLink(`${base}#/artist/${slug}`);
     } catch (err) {
@@ -285,10 +307,10 @@ function CreatorStudio() {
               <div style={{ marginBottom: '1.5rem' }}>
                 <div className="section-title">Follow</div>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  {socials.instagram && <a href={socials.instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#E1306C' }}><Instagram size={22} /></a>}
-                  {socials.soundcloud && <a href={socials.soundcloud} target="_blank" rel="noopener noreferrer" style={{ color: '#ff5500' }}><Music size={22} /></a>}
-                  {socials.twitter && <a href={socials.twitter} target="_blank" rel="noopener noreferrer" style={{ color: '#fff' }}><Twitter size={22} /></a>}
-                  {socials.youtube && <a href={socials.youtube} target="_blank" rel="noopener noreferrer" style={{ color: '#FF0000' }}><Youtube size={22} /></a>}
+                  {socials.instagram && <a href={ensureHttps(socials.instagram)} target="_blank" rel="noopener noreferrer" style={{ color: '#E1306C' }}><Instagram size={22} /></a>}
+                  {socials.soundcloud && <a href={ensureHttps(socials.soundcloud)} target="_blank" rel="noopener noreferrer" style={{ color: '#ff5500' }}><Music size={22} /></a>}
+                  {socials.twitter && <a href={ensureHttps(socials.twitter)} target="_blank" rel="noopener noreferrer" style={{ color: '#fff' }}><Twitter size={22} /></a>}
+                  {socials.youtube && <a href={ensureHttps(socials.youtube)} target="_blank" rel="noopener noreferrer" style={{ color: '#FF0000' }}><Youtube size={22} /></a>}
                 </div>
               </div>
             )}
