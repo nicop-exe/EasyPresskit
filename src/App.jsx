@@ -194,9 +194,6 @@ function CreatorStudio() {
     setSaving(true); setSavedLink(null);
 
     // Sanitize socials
-    console.log('--- handleSave v2.2 Triggered ---');
-    alert('Saving presskit... please wait.');
-
     const sanitizedSocials = {
       instagram: ensureHttps(socials.instagram),
       soundcloud: ensureHttps(socials.soundcloud),
