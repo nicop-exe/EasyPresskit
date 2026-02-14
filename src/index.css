@@ -45,6 +45,12 @@ h3,
   padding: 2rem;
 }
 
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem 0.75rem;
+  }
+}
+
 .grid {
   display: grid;
   gap: 2rem;
@@ -64,6 +70,13 @@ h3,
   border-radius: 12px;
   padding: 2rem;
   overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .glass-panel {
+    padding: 1.25rem 1rem;
+    border-radius: 8px;
+  }
 }
 
 .accent-border {
@@ -126,6 +139,13 @@ button {
   transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  button {
+    padding: 0.6rem 1rem;
+    font-size: 0.75rem;
+  }
 }
 
 button:hover {

@@ -96,10 +96,14 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
 
     const isPlayer = item.type === 'player';
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+
     return (
         <div
             style={{
-                position: 'relative', width: '155px',
+                position: 'relative',
+                width: isMobile ? 'calc(50% - 10px)' : '155px',
+                minWidth: isMobile ? '0' : '155px',
                 border: `1px solid ${borderColor}`, borderRadius: '8px',
                 background: bgColor, cursor: 'pointer',
                 transition: 'all 0.25s ease',
@@ -113,7 +117,7 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 onClick={onToggle}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                style={{ width: '100%', height: '115px', position: 'relative' }}
+                style={{ width: '100%', height: isMobile ? '95px' : '115px', position: 'relative' }}
             >
                 <Canvas camera={{ position: [3, 3, 3], fov: 40 }} style={{ background: 'transparent' }}>
                     <ambientLight intensity={1.2} />
@@ -257,7 +261,7 @@ const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
                 </span>
             </div>
 
-            <div style={{ height: '260px' }}>
+            <div style={{ height: (typeof window !== 'undefined' && window.innerWidth < 600) ? '220px' : '260px' }}>
                 <Canvas camera={{ position: [0, 6, 10], fov: 45 }}>
                     <ambientLight intensity={1} />
                     <directionalLight position={[5, 6, 5]} intensity={0.8} />
@@ -313,8 +317,10 @@ export const TechRider = ({ onAddEquipment, selectedEquipment = [], cdjCount = 2
         <div>
             {/* Equipment grid */}
             <div style={{
-                display: 'flex', flexWrap: 'wrap', gap: '10px',
-                justifyContent: 'center', padding: '10px 0',
+                display: 'grid',
+                gridTemplateColumns: (typeof window !== 'undefined' && window.innerWidth < 600) ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(155px, 1fr))',
+                gap: '10px',
+                padding: '10px 0',
             }}>
                 {equipmentData.map((item) => (
                     <EquipmentCard
