@@ -37,12 +37,10 @@ h3,
 
 .neon-text-cyan {
   color: var(--neon-cyan);
-  text-shadow: 0 0 5px var(--neon-cyan), 0 0 15px var(--neon-cyan);
 }
 
 .neon-text-pink {
   color: var(--neon-pink);
-  text-shadow: 0 0 5px var(--neon-pink), 0 0 15px var(--neon-pink);
 }
 
 .neon-border-cyan {

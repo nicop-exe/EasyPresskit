@@ -148,22 +148,24 @@ function App() {
 
               <div style={{ marginTop: '2rem', textAlign: 'left' }}>
                 <h4 className="font-orbitron" style={{ fontSize: '0.8rem', color: 'var(--neon-pink)' }}>Equipment List</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '0.5rem' }}>Click on 3D models to add:</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '0.5rem' }}>Click equipment to add to your rider:</p>
                 <TechRider
                   primaryColor={uniqueStyle.primaryColor}
                   onAddEquipment={toggleGear}
                   selectedEquipment={selectedGear}
                 />
-                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   {selectedGear.length === 0 && <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>No equipment selected.</span>}
                   {selectedGear.map((item, idx) => (
                     <span key={idx} style={{
                       fontSize: '0.7rem',
-                      padding: '0.2rem 0.5rem',
+                      padding: '0.3rem 0.6rem',
                       border: '1px solid var(--neon-cyan)',
                       borderRadius: '4px',
                       color: 'white',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      background: 'rgba(0, 242, 255, 0.08)',
                     }}
                       onClick={() => setSelectedGear(prev => prev.filter((_, i) => i !== idx))}
                     >
