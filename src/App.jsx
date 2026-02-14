@@ -205,6 +205,7 @@ function CreatorStudio() {
     };
 
     // 1. Check Payload Size Limit (Firestore max is 1MB)
+    alert('Checkpoint A: Starting size check');
     const estimatedPayload = JSON.stringify({
       artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
     });
@@ -212,7 +213,7 @@ function CreatorStudio() {
     // Simple byte size approximation
     const sizeInBytes = new Blob([estimatedPayload]).size;
     const sizeInMB = sizeInBytes / (1024 * 1024);
-    console.log(`Estimated payload size: ${sizeInMB.toFixed(2)} MB`);
+    alert(`Checkpoint B: Payload is ${sizeInMB.toFixed(2)} MB`);
 
     if (sizeInMB > 0.95) {
       setSaving(false);
@@ -221,6 +222,7 @@ function CreatorStudio() {
     }
 
     try {
+      alert('Checkpoint C: Calling savePresskit service...');
       // Race the save operation against a 30-second timeout
       const savePromise = savePresskit({
         artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
