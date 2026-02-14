@@ -49,6 +49,7 @@ function CreatorStudio() {
   const [artistName, setArtistName] = useState('');
   const [artistConcept, setArtistConcept] = useState('');
   const [selectedGear, setSelectedGear] = useState([]);
+  const [cdjCount, setCdjCount] = useState(2);
   const [saving, setSaving] = useState(false);
   const [savedLink, setSavedLink] = useState(null);
   const [socials, setSocials] = useState({ instagram: '', soundcloud: '', twitter: '', youtube: '' });
@@ -74,7 +75,7 @@ function CreatorStudio() {
     if (!artistName.trim()) { alert('Please enter an artist name'); return; }
     setSaving(true); setSavedLink(null);
     try {
-      const { slug } = await savePresskit({ artistName, artistConcept, bio, hospitality, selectedGear, profilePic, socials });
+      const { slug } = await savePresskit({ artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials });
       const base = window.location.origin + window.location.pathname;
       setSavedLink(`${base}#/artist/${slug}`);
     } catch (err) {
@@ -176,12 +177,7 @@ function CreatorStudio() {
               borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.05)',
             }}>
-              <p style={{
-                fontFamily: 'var(--font-display)', fontSize: '0.55rem',
-                letterSpacing: '0.3em', color: ACCENT, marginBottom: '1rem',
-              }}>
-                OFFICIAL PRESS KIT
-              </p>
+
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
                 {profilePic ? (
@@ -241,25 +237,12 @@ function CreatorStudio() {
             {/* Equipment List */}
             <div style={{ marginBottom: '1.5rem' }}>
               <div className="section-title">Technical Rider</div>
-              <TechRider primaryColor={ACCENT} onAddEquipment={toggleGear} selectedEquipment={selectedGear} />
-
-              <div style={{ marginTop: '0.8rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                {selectedGear.length === 0 && (
-                  <span style={{ color: '#555', fontSize: '0.8rem' }}>No equipment selected.</span>
-                )}
-                {selectedGear.map((item, idx) => (
-                  <span key={idx} style={{
-                    fontSize: '0.7rem', padding: '0.3rem 0.6rem',
-                    border: `1px solid ${ACCENT}`, borderRadius: '4px',
-                    color: '#fff', cursor: 'pointer', background: `${ACCENT}15`,
-                    fontFamily: 'var(--font-display)', letterSpacing: '0.05em',
-                  }}
-                    onClick={() => setSelectedGear(prev => prev.filter((_, i) => i !== idx))}
-                  >
-                    {item} ✖
-                  </span>
-                ))}
-              </div>
+              <TechRider
+                onAddEquipment={toggleGear}
+                selectedEquipment={selectedGear}
+                cdjCount={cdjCount}
+                onCdjCountChange={setCdjCount}
+              />
             </div>
 
             {/* Hospitality */}
