@@ -127,8 +127,8 @@ function CreatorStudio() {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          // Stronger compression for array items
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          // Stronger compression for array items to save space
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
           setMedia(prev => [...prev, { type: 'image', url: dataUrl }]);
         };
         img.src = event.target.result;
@@ -183,6 +183,22 @@ function CreatorStudio() {
       youtube: ensureHttps(socials.youtube),
     };
 
+    // 1. Check Payload Size Limit (Firestore max is 1MB)
+    const estimatedPayload = JSON.stringify({
+      artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
+    });
+
+    // Simple byte size approximation
+    const sizeInBytes = new Blob([estimatedPayload]).size;
+    const sizeInMB = sizeInBytes / (1024 * 1024);
+    console.log(`Estimated payload size: ${sizeInMB.toFixed(2)} MB`);
+
+    if (sizeInMB > 0.95) {
+      setSaving(false);
+      alert(`Data too large (${sizeInMB.toFixed(2)} MB). Firestore has a 1MB limit. Please remove some photos or use smaller ones.`);
+      return;
+    }
+
     try {
       // Race the save operation against a 30-second timeout
       const savePromise = savePresskit({
@@ -190,7 +206,7 @@ function CreatorStudio() {
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Connection timed out. Please check your internet connection.')), 30000);
+        setTimeout(() => reject(new Error('Connection timed out. Uploading photos may take a minute on slow connections.')), 60000);
       });
 
       const { slug } = await Promise.race([savePromise, timeoutPromise]);
