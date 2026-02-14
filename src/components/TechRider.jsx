@@ -230,7 +230,7 @@ const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
     // Calculate positions if equipment exists
     const leftCdjs = Math.ceil(cdjCount / 2);
     const rightCdjs = Math.floor(cdjCount / 2);
-    const spacing = 2.2;
+    const spacing = 3.2;
 
     return (
         <div style={{
@@ -258,14 +258,14 @@ const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
             </div>
 
             <div style={{ height: '260px' }}>
-                <Canvas camera={{ position: [0, 5, 8], fov: 45 }}>
+                <Canvas camera={{ position: [0, 6, 10], fov: 45 }}>
                     <ambientLight intensity={1} />
                     <directionalLight position={[5, 6, 5]} intensity={0.8} />
                     <directionalLight position={[-3, 4, -3]} intensity={0.3} />
 
                     {/* Ground plane */}
                     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]}>
-                        <planeGeometry args={[15, 8]} />
+                        <planeGeometry args={[25, 15]} />
                         <meshStandardMaterial color="#0a0a0a" />
                     </mesh>
 
