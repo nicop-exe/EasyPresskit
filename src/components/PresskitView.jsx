@@ -240,6 +240,49 @@ export const PresskitView = ({ slug }) => {
                         </div>
                     </section>
                 )}
+
+                {/* Media Gallery */}
+                {data.media && data.media.length > 0 && (
+                    <section style={{ marginBottom: '3rem' }}>
+                        <h2 style={{
+                            fontFamily: 'Orbitron, sans-serif',
+                            fontSize: '0.7rem', letterSpacing: '0.25em',
+                            color: ACCENT, marginBottom: '1rem',
+                            paddingBottom: '0.5rem',
+                            borderBottom: `2px solid ${ACCENT}`,
+                            display: 'inline-block',
+                        }}>
+                            Media
+                        </h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                            {data.media.map((item, index) => (
+                                <div key={index} style={{
+                                    borderRadius: '8px', overflow: 'hidden',
+                                    border: `1px solid ${ACCENT}30`,
+                                    background: '#0d0d0d', aspectRatio: '16/9'
+                                }}>
+                                    {item.type === 'youtube' ? (
+                                        <iframe
+                                            width="100%" height="100%"
+                                            src={`https://www.youtube.com/embed/${item.url}`}
+                                            title="YouTube video player"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            style={{ display: 'block' }}
+                                        ></iframe>
+                                    ) : (
+                                        <img
+                                            src={item.url}
+                                            alt="Gallery"
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </main>
 
             {/* Footer */}

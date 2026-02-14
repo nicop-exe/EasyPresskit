@@ -53,6 +53,7 @@ function CreatorStudio() {
   const [saving, setSaving] = useState(false);
   const [savedLink, setSavedLink] = useState(null);
   const [socials, setSocials] = useState({ instagram: '', soundcloud: '', twitter: '', youtube: '' });
+  const [media, setMedia] = useState([]);
 
   const ACCENT = '#ff1744';
 
@@ -96,6 +97,67 @@ function CreatorStudio() {
     }
   };
 
+  const handleMediaUpload = (e) => {
+    if (media.length >= 6) { return alert('Max 6 media items allowed'); }
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) return alert('File too large (max 5MB source)');
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 1000; // Slightly larger for gallery
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          // Stronger compression for array items
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          setMedia(prev => [...prev, { type: 'image', url: dataUrl }]);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addYoutube = (url) => {
+    if (media.length >= 6) { return alert('Max 6 media items allowed'); }
+    if (!url) return;
+
+    // Extract ID (supports youtu.be and youtube.com)
+    let videoId = '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      videoId = match[2];
+    } else {
+      return alert('Invalid YouTube URL');
+    }
+
+    setMedia(prev => [...prev, { type: 'youtube', url: videoId }]);
+  };
+
+  const removeMedia = (index) => {
+    setMedia(prev => prev.filter((_, i) => i !== index));
+  };
+
   const ensureHttps = (url) => {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -122,13 +184,13 @@ function CreatorStudio() {
     };
 
     try {
-      // Race the save operation against a 15-second timeout
+      // Race the save operation against a 30-second timeout
       const savePromise = savePresskit({
-        artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials
+        artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Connection timed out. Please check your internet connection.')), 15000);
+        setTimeout(() => reject(new Error('Connection timed out. Please check your internet connection.')), 30000);
       });
 
       const { slug } = await Promise.race([savePromise, timeoutPromise]);
@@ -213,13 +275,70 @@ function CreatorStudio() {
             </div>
 
             {/* Social Links */}
-            <div>
+            <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ marginBottom: '0.7rem' }}>Social Links</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <SocialInput icon={Instagram} placeholder="https://instagram.com/..." value={socials.instagram} onChange={updateSocial('instagram')} color="#E1306C" />
                 <SocialInput icon={Music} placeholder="https://soundcloud.com/..." value={socials.soundcloud} onChange={updateSocial('soundcloud')} color="#ff5500" />
                 <SocialInput icon={Twitter} placeholder="https://x.com/..." value={socials.twitter} onChange={updateSocial('twitter')} color="#999" />
                 <SocialInput icon={Youtube} placeholder="https://youtube.com/..." value={socials.youtube} onChange={updateSocial('youtube')} color="#FF0000" />
+              </div>
+            </div>
+
+            {/* Media Gallery */}
+            <div>
+              <label style={{ marginBottom: '0.7rem' }}>Media Gallery (Max 6 items)</label>
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
+                <input
+                  type="text"
+                  placeholder="Paste YouTube Link"
+                  id="yt-input"
+                  style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}
+                />
+                <button
+                  onClick={() => {
+                    const input = document.getElementById('yt-input');
+                    addYoutube(input.value);
+                    input.value = '';
+                  }}
+                  style={{ padding: '0.5rem', fontSize: '0.8rem' }}
+                >
+                  Add Video
+                </button>
+              </div>
+
+              <div style={{ marginBottom: '0.8rem' }}>
+                <button onClick={() => document.getElementById('media-upload').click()}
+                  style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px dashed #444' }}>
+                  + Upload Photo (Limit 2MB)
+                </button>
+                <input id="media-upload" type="file" hidden onChange={handleMediaUpload} accept="image/*" />
+              </div>
+
+              {/* Media List */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                {media.map((item, index) => (
+                  <div key={index} style={{ position: 'relative', aspectRatio: '16/9', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
+                    {item.type === 'image' ? (
+                      <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <img src={`https://img.youtube.com/vi/${item.url}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
+                    <button
+                      onClick={() => removeMedia(index)}
+                      style={{
+                        position: 'absolute', top: 2, right: 2,
+                        background: 'rgba(0,0,0,0.8)', color: '#fff',
+                        border: 'none', borderRadius: '50%',
+                        width: '20px', height: '20px',
+                        fontSize: '0.8rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </section>

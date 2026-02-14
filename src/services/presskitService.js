@@ -42,6 +42,7 @@ export async function savePresskit({ artistName, artistConcept, bio, hospitality
         cdjCount: cdjCount || 2,
         photoURL,
         socials: socials || {},
+        media: media || [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
