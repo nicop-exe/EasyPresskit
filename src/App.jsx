@@ -43,19 +43,59 @@ const SocialInput = ({ icon: Icon, placeholder, value, onChange, color }) => (
 
 /* ── Creator Studio ── */
 function CreatorStudio() {
-  const [profilePic, setProfilePic] = useState(null);
-  const [bio, setBio] = useState('');
-  const [hospitality, setHospitality] = useState('');
-  const [artistName, setArtistName] = useState('');
-  const [artistConcept, setArtistConcept] = useState('');
-  const [selectedGear, setSelectedGear] = useState([]);
-  const [cdjCount, setCdjCount] = useState(2);
+  // Initialize state from localStorage if available
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('ep_profilePic') || null);
+  const [bio, setBio] = useState(() => localStorage.getItem('ep_bio') || '');
+  const [hospitality, setHospitality] = useState(() => localStorage.getItem('ep_hospitality') || '');
+  const [artistName, setArtistName] = useState(() => localStorage.getItem('ep_artistName') || '');
+  const [artistConcept, setArtistConcept] = useState(() => localStorage.getItem('ep_artistConcept') || '');
+
+  const [selectedGear, setSelectedGear] = useState(() => {
+    const saved = localStorage.getItem('ep_selectedGear');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [cdjCount, setCdjCount] = useState(() => {
+    const saved = localStorage.getItem('ep_cdjCount');
+    return saved ? parseInt(saved, 10) : 2;
+  });
+
+  const [socials, setSocials] = useState(() => {
+    const saved = localStorage.getItem('ep_socials');
+    return saved ? JSON.parse(saved) : { instagram: '', soundcloud: '', twitter: '', youtube: '' };
+  });
+
+  const [media, setMedia] = useState(() => {
+    const saved = localStorage.getItem('ep_media');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [saving, setSaving] = useState(false);
   const [savedLink, setSavedLink] = useState(null);
-  const [socials, setSocials] = useState({ instagram: '', soundcloud: '', twitter: '', youtube: '' });
-  const [media, setMedia] = useState([]);
 
   const ACCENT = '#ff1744';
+
+  // Persistence Effect
+  useEffect(() => {
+    try {
+      localStorage.setItem('ep_artistName', artistName);
+      localStorage.setItem('ep_artistConcept', artistConcept);
+      localStorage.setItem('ep_bio', bio);
+      localStorage.setItem('ep_hospitality', hospitality);
+      localStorage.setItem('ep_selectedGear', JSON.stringify(selectedGear));
+      localStorage.setItem('ep_cdjCount', cdjCount);
+      localStorage.setItem('ep_socials', JSON.stringify(socials));
+      localStorage.setItem('ep_media', JSON.stringify(media));
+
+      if (profilePic) {
+        localStorage.setItem('ep_profilePic', profilePic);
+      } else {
+        localStorage.removeItem('ep_profilePic');
+      }
+    } catch (error) {
+      console.warn('LocalStorage quota exceeded or error:', error);
+    }
+  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic]);
 
   const toggleGear = (name) => {
     setSelectedGear(prev => prev.includes(name) ? prev.filter(g => g !== name) : [...prev, name]);
