@@ -259,14 +259,8 @@ const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
                         ))}
                     </Suspense>
 
-                    <OrbitControls
-                        enableZoom={false}
-                        enablePan={false}
-                        minPolarAngle={Math.PI / 6}
-                        maxPolarAngle={Math.PI / 2.5}
-                        autoRotate
-                        autoRotateSpeed={0.5}
-                    />
+
+
                 </Canvas>
             </div>
         </div>
