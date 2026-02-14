@@ -16,7 +16,7 @@ const CDJGLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) => {
 
     return (
         <group ref={groupRef} position={position} scale={scale}>
-            <primitive object={clonedScene} scale={0.01} />
+            <primitive object={clonedScene} scale={1} />
         </group>
     );
 };
@@ -32,7 +32,7 @@ const DJMAGLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) => {
 
     return (
         <group ref={groupRef} position={position} scale={scale}>
-            <primitive object={clonedScene} scale={0.01} />
+            <primitive object={clonedScene} scale={1} />
         </group>
     );
 };
@@ -114,7 +114,7 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 onMouseLeave={() => setHovered(false)}
                 style={{ width: '100%', height: '115px', position: 'relative' }}
             >
-                <Canvas camera={{ position: [2, 2, 2], fov: 30 }} style={{ background: 'transparent' }}>
+                <Canvas camera={{ position: [3, 3, 3], fov: 40 }} style={{ background: 'transparent' }}>
                     <ambientLight intensity={1.2} />
                     <directionalLight position={[3, 4, 3]} intensity={1} />
                     <directionalLight position={[-2, 2, -2]} intensity={0.4} />
@@ -226,8 +226,8 @@ const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
                 </span>
             </div>
 
-            <div style={{ height: '220px' }}>
-                <Canvas camera={{ position: [0, 4, 6], fov: 40 }}>
+            <div style={{ height: '260px' }}>
+                <Canvas camera={{ position: [0, 5, 8], fov: 45 }}>
                     <ambientLight intensity={1} />
                     <directionalLight position={[5, 6, 5]} intensity={0.8} />
                     <directionalLight position={[-3, 4, -3]} intensity={0.3} />
@@ -279,7 +279,7 @@ const CDJBoothUnit = ({ position }) => {
     const clonedScene = React.useMemo(() => scene.clone(true), [scene]);
     return (
         <group position={position}>
-            <primitive object={clonedScene} scale={0.01} />
+            <primitive object={clonedScene} scale={1} />
         </group>
     );
 };
@@ -289,7 +289,7 @@ const DJMABoothUnit = ({ position }) => {
     const clonedScene = React.useMemo(() => scene.clone(true), [scene]);
     return (
         <group position={position}>
-            <primitive object={clonedScene} scale={0.01} />
+            <primitive object={clonedScene} scale={1} />
         </group>
     );
 };
