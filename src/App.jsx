@@ -194,6 +194,9 @@ function CreatorStudio() {
     setSaving(true); setSavedLink(null);
 
     // Sanitize socials
+    console.log('--- handleSave v2.2 Triggered ---');
+    alert('Saving presskit... please wait.');
+
     const sanitizedSocials = {
       instagram: ensureHttps(socials.instagram),
       soundcloud: ensureHttps(socials.soundcloud),
@@ -230,7 +233,9 @@ function CreatorStudio() {
       const { slug } = await Promise.race([savePromise, timeoutPromise]);
 
       const base = window.location.origin + window.location.pathname;
-      setSavedLink(`${base}#/artist/${slug}`);
+      const finalLink = `${base}#/artist/${slug}`;
+      setSavedLink(finalLink);
+      alert(`Success! Presskit saved to: ${finalLink}`);
     } catch (err) {
       console.error(err);
       alert(`Error saving presskit: ${err.message || 'Unknown error'}`);

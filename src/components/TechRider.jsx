@@ -102,16 +102,17 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
         <div
             style={{
                 position: 'relative',
-                width: isMobile ? 'calc(50% - 10px)' : '155px',
-                minWidth: isMobile ? '0' : '155px',
+                width: '100%',
                 display: 'flex', flexDirection: 'column',
-                minHeight: isMobile ? '185px' : 'auto',
+                height: isMobile ? '200px' : 'auto',
+                minHeight: isMobile ? '200px' : '200px',
                 border: `1px solid ${borderColor}`, borderRadius: '8px',
                 background: bgColor, cursor: 'pointer',
                 transition: 'all 0.25s ease',
                 boxShadow: hovered ? '0 4px 20px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.4)',
                 transform: hovered ? 'translateY(-3px)' : 'none',
                 overflow: 'hidden',
+                flexShrink: 0
             }}
         >
             {/* 3D preview — click selects/deselects */}
@@ -165,8 +166,9 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
             {isSelected && isPlayer && (
                 <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: '0.5rem', padding: '4px 8px',
+                    gap: '0.4rem', padding: '4px 6px',
                     borderTop: '1px solid #222', background: 'rgba(255,255,255,0.02)',
+                    marginTop: 'auto'
                 }}>
                     <button onClick={(e) => { e.stopPropagation(); onCountChange(Math.max(1, count - 1)); }}
                         style={{ width: '22px', height: '22px', padding: 0, fontSize: '0.7rem', border: '1px solid #444', borderRadius: '4px', color: '#999', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -313,6 +315,8 @@ export const TechRider = ({ onAddEquipment, selectedEquipment = [], cdjCount = 2
         { id: 'xone92', name: 'Xone:92', type: 'mixer', brand: 'allen' },
         { id: 'xone96', name: 'Xone:96', type: 'mixer', brand: 'allen' },
     ];
+
+    console.log('TechRider v2.1 (Standardized Cards) rendering...');
 
     const selectedItems = equipmentData.filter(e => selectedEquipment.includes(e.name));
 
