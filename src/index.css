@@ -1,15 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
 
 :root {
-  --bg-dark: #050505;
-  --bg-card: rgba(20, 20, 20, 0.7);
-  --neon-cyan: #00f2ff;
-  --neon-pink: #ff00ff;
-  --neon-lime: #39ff14;
-  --text-main: #e0e0e0;
-  --text-dim: #a0a0a0;
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.03);
+  --bg-dark: #0a0a0a;
+  --bg-card: #111111;
+  --accent: #ff1744;
+  --accent-dim: rgba(255, 23, 68, 0.15);
+  --accent-glow: rgba(255, 23, 68, 0.4);
+  --text-main: #f0f0f0;
+  --text-dim: #888;
+  --text-muted: #555;
+  --border: rgba(255, 255, 255, 0.08);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
 }
 
 * {
@@ -21,84 +23,22 @@
 body {
   background-color: var(--bg-dark);
   color: var(--text-main);
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   overflow-x: hidden;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
 h3,
 .font-orbitron {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: 2px;
 }
 
-.neon-text-cyan {
-  color: var(--neon-cyan);
-}
-
-.neon-text-pink {
-  color: var(--neon-pink);
-}
-
-.neon-border-cyan {
-  border: 1px solid var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
-}
-
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  padding: 2rem;
-  overflow: hidden;
-  max-width: 100%;
-}
-
-input,
-textarea {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  color: white;
-  padding: 0.8rem;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
-}
-
-button {
-  background: transparent;
-  border: 1px solid var(--neon-cyan);
-  color: var(--neon-cyan);
-  padding: 0.8rem 1.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  text-transform: uppercase;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  overflow: hidden;
-  position: relative;
-}
-
-button:hover {
-  background: var(--neon-cyan);
-  color: black;
-  box-shadow: 0 0 20px var(--neon-cyan);
-}
-
+/* ── Layout ── */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -112,16 +52,111 @@ button:hover {
 
 @media (min-width: 900px) {
   .grid-2 {
-    grid-template-columns: 350px minmax(0, 1fr);
+    grid-template-columns: 380px minmax(0, 1fr);
     align-items: start;
   }
 }
 
-/* 3D Viewer Container */
-#canvas-container {
+/* ── Glass Panel ── */
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.accent-border {
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 30px var(--accent-dim);
+}
+
+/* ── Section Headers ── */
+.section-title {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 2px solid var(--accent);
+  display: inline-block;
+}
+
+/* ── Inputs ── */
+input,
+textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
-  height: 400px;
-  background: #000;
-  border-radius: 8px;
-  margin-top: 1rem;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #444;
+}
+
+/* ── Buttons ── */
+button {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 25px var(--accent-glow);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ── Accent text ── */
+.accent-text {
+  color: var(--accent);
+}
+
+/* ── Spin animation for loader ── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Label styling ── */
+label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
 }

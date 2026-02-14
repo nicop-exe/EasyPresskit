@@ -1,43 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { loadPresskit } from '../services/presskitService';
-import { generateUniqueStyle } from '../utils/uniqueness';
 import { Music, Instagram, Youtube, Twitter, ExternalLink } from 'lucide-react';
 
-/* ── Social icon button ── */
+const ACCENT = '#ff1744';
+
+/* ── Social button ── */
 const SocialButton = ({ href, icon: Icon, label, color }) => {
     if (!href) return null;
     return (
-        <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={label}
+        <a href={href} target="_blank" rel="noopener noreferrer" title={label}
             style={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.6rem 1.2rem',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.12)',
+                display: 'flex', alignItems: 'center', gap: '0.6rem',
+                padding: '0.7rem 1.2rem',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '8px',
-                color: '#fff',
-                textDecoration: 'none',
-                fontSize: '0.8rem',
-                fontFamily: 'var(--font-body, Rajdhani, sans-serif)',
+                color: '#ccc', textDecoration: 'none',
+                fontSize: '0.85rem', fontFamily: 'Rajdhani, sans-serif',
                 transition: 'all 0.25s ease',
             }}
             onMouseEnter={(e) => {
-                e.currentTarget.style.background = color + '20';
+                e.currentTarget.style.background = color + '18';
                 e.currentTarget.style.borderColor = color;
                 e.currentTarget.style.color = color;
             }}
             onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
-                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                e.currentTarget.style.color = '#ccc';
             }}
         >
-            <Icon size={18} />
-            <span>{label}</span>
-            <ExternalLink size={12} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+            <Icon size={20} />
+            <span style={{ fontWeight: 600 }}>{label}</span>
+            <ExternalLink size={12} style={{ marginLeft: 'auto', opacity: 0.4 }} />
         </a>
     );
 };
@@ -49,140 +44,138 @@ export const PresskitView = ({ slug }) => {
 
     useEffect(() => {
         loadPresskit(slug)
-            .then((result) => {
-                if (!result) setError('Presskit not found');
-                else setData(result);
-            })
+            .then((result) => { if (!result) setError('Presskit not found'); else setData(result); })
             .catch(() => setError('Failed to load presskit'))
             .finally(() => setLoading(false));
     }, [slug]);
 
     if (loading) {
         return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#050505' }}>
-                <p style={{ color: '#00f2ff', fontFamily: 'Orbitron, sans-serif', fontSize: '1rem' }}>Loading presskit...</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0a0a0a' }}>
+                <p style={{ color: ACCENT, fontFamily: 'Orbitron, sans-serif', fontSize: '0.9rem', letterSpacing: '0.2em' }}>LOADING...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#050505', flexDirection: 'column', gap: '1rem' }}>
-                <p style={{ color: '#ff4444', fontFamily: 'Orbitron, sans-serif', fontSize: '1rem' }}>{error}</p>
-                <a href="./" style={{ color: '#00f2ff', fontSize: '0.9rem' }}>← Create your own presskit</a>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0a0a0a', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ color: ACCENT, fontFamily: 'Orbitron, sans-serif', fontSize: '1rem' }}>{error}</p>
+                <a href="./" style={{ color: '#888', fontSize: '0.85rem' }}>← Create your own presskit</a>
             </div>
         );
     }
 
-    const style = generateUniqueStyle(data.artistConcept || '');
     const socials = data.socials || {};
     const hasSocials = Object.values(socials).some(v => v);
 
     return (
-        <div style={{ background: '#050505', minHeight: '100vh', color: '#e0e0e0' }}>
+        <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#e0e0e0', fontFamily: 'Rajdhani, sans-serif' }}>
 
-            {/* Hero Section */}
+            {/* ── HERO ── */}
             <header style={{
                 position: 'relative',
-                padding: '4rem 2rem 3rem',
-                textAlign: 'center',
-                background: `linear-gradient(180deg, ${style.primaryColor}12 0%, transparent 70%)`,
-                borderBottom: `1px solid ${style.primaryColor}25`,
+                overflow: 'hidden',
+                padding: '0',
             }}>
-                <p style={{
-                    fontFamily: 'Orbitron, sans-serif',
-                    fontSize: '0.65rem',
-                    letterSpacing: '0.3em',
-                    textTransform: 'uppercase',
-                    color: style.secondaryColor,
-                    marginBottom: '1.5rem',
+                {/* Dark gradient overlay */}
+                <div style={{
+                    position: 'relative',
+                    padding: '5rem 2rem 4rem',
+                    background: `linear-gradient(180deg, ${ACCENT}10 0%, #0a0a0a 100%)`,
                 }}>
-                    Official Press Kit
-                </p>
+                    {/* Accent stripe top */}
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0,
+                        height: '4px', background: ACCENT,
+                    }} />
 
-                {data.photoURL && (
-                    <img
-                        src={data.photoURL}
-                        alt={data.artistName}
-                        style={{
-                            width: '150px', height: '150px',
-                            borderRadius: '50%',
-                            border: `3px solid ${style.primaryColor}`,
-                            objectFit: 'cover',
-                            margin: '0 auto 1.5rem',
-                            display: 'block',
-                            boxShadow: `0 0 40px ${style.primaryColor}30`,
-                        }}
-                    />
-                )}
+                    {/* Diagonal accent */}
+                    <div style={{
+                        position: 'absolute', top: 0, right: '-50px',
+                        width: '200px', height: '100%',
+                        background: `linear-gradient(135deg, transparent 30%, ${ACCENT}12 30%, ${ACCENT}18 50%, transparent 50%)`,
+                    }} />
 
-                <h1 style={{
-                    fontFamily: 'Orbitron, sans-serif',
-                    fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                    fontWeight: 700,
-                    color: '#fff',
-                    letterSpacing: '0.05em',
-                    textTransform: 'uppercase',
-                    margin: 0,
-                }}>
-                    {data.artistName}
-                </h1>
+                    <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                        <p style={{
+                            fontFamily: 'Orbitron, sans-serif',
+                            fontSize: '0.6rem',
+                            letterSpacing: '0.4em',
+                            color: ACCENT,
+                            marginBottom: '2rem',
+                        }}>
+                            OFFICIAL PRESS KIT
+                        </p>
 
-                {data.artistConcept && (
-                    <p style={{
-                        fontFamily: 'Orbitron, sans-serif',
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.2em',
-                        textTransform: 'uppercase',
-                        color: style.primaryColor,
-                        marginTop: '0.5rem',
-                    }}>
-                        {data.artistConcept}
-                    </p>
-                )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                            {data.photoURL && (
+                                <img src={data.photoURL} alt={data.artistName}
+                                    style={{
+                                        width: '140px', height: '140px',
+                                        borderRadius: '8px',
+                                        border: `3px solid ${ACCENT}`,
+                                        objectFit: 'cover',
+                                        boxShadow: `0 0 40px ${ACCENT}25`,
+                                    }}
+                                />
+                            )}
+                            <div>
+                                <h1 style={{
+                                    fontFamily: 'Orbitron, sans-serif',
+                                    fontSize: 'clamp(2rem, 6vw, 4rem)',
+                                    fontWeight: 900, color: '#fff',
+                                    lineHeight: 0.95, letterSpacing: '0.05em',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    {data.artistName}
+                                </h1>
+                                {data.artistConcept && (
+                                    <p style={{
+                                        fontFamily: 'Orbitron, sans-serif',
+                                        fontSize: '0.7rem', letterSpacing: '0.2em',
+                                        color: '#666', marginTop: '0.6rem',
+                                        textTransform: 'uppercase',
+                                    }}>
+                                        {data.artistConcept}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </header>
 
-            {/* Content */}
-            <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+            {/* ── CONTENT ── */}
+            <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
 
-                {/* Biography */}
+                {/* About */}
                 {data.bio && (
-                    <section style={{ marginBottom: '2.5rem' }}>
+                    <section style={{ marginBottom: '3rem' }}>
                         <h2 style={{
                             fontFamily: 'Orbitron, sans-serif',
-                            fontSize: '0.75rem',
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            color: style.primaryColor,
-                            marginBottom: '1rem',
+                            fontSize: '0.7rem', letterSpacing: '0.25em',
+                            color: ACCENT, marginBottom: '1rem',
                             paddingBottom: '0.5rem',
-                            borderBottom: `1px solid ${style.primaryColor}30`,
+                            borderBottom: `2px solid ${ACCENT}`,
+                            display: 'inline-block',
                         }}>
                             About
                         </h2>
-                        <p style={{
-                            lineHeight: '1.8',
-                            color: '#ccc',
-                            fontSize: '1rem',
-                            fontFamily: 'Rajdhani, sans-serif',
-                        }}>
-                            {data.bio}
-                        </p>
+                        <p style={{ lineHeight: '1.8', color: '#bbb', fontSize: '1.05rem' }}>{data.bio}</p>
                     </section>
                 )}
 
                 {/* Technical Rider */}
                 {data.selectedGear && data.selectedGear.length > 0 && (
-                    <section style={{ marginBottom: '2.5rem' }}>
+                    <section style={{ marginBottom: '3rem' }}>
                         <h2 style={{
                             fontFamily: 'Orbitron, sans-serif',
-                            fontSize: '0.75rem',
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            color: style.primaryColor,
-                            marginBottom: '1rem',
+                            fontSize: '0.7rem', letterSpacing: '0.25em',
+                            color: ACCENT, marginBottom: '1rem',
                             paddingBottom: '0.5rem',
-                            borderBottom: `1px solid ${style.primaryColor}30`,
+                            borderBottom: `2px solid ${ACCENT}`,
+                            display: 'inline-block',
                         }}>
                             Technical Rider
                         </h2>
@@ -190,12 +183,11 @@ export const PresskitView = ({ slug }) => {
                             {data.selectedGear.map((item, i) => (
                                 <span key={i} style={{
                                     padding: '0.5rem 1rem',
-                                    border: `1px solid ${style.primaryColor}50`,
-                                    borderRadius: '6px',
-                                    color: '#fff',
+                                    border: `1px solid ${ACCENT}50`,
+                                    borderRadius: '6px', color: '#fff',
                                     fontSize: '0.85rem',
                                     fontFamily: 'Orbitron, sans-serif',
-                                    background: `${style.primaryColor}10`,
+                                    background: `${ACCENT}12`,
                                     letterSpacing: '0.05em',
                                 }}>
                                     {item}
@@ -207,46 +199,35 @@ export const PresskitView = ({ slug }) => {
 
                 {/* Hospitality */}
                 {data.hospitality && (
-                    <section style={{ marginBottom: '2.5rem' }}>
+                    <section style={{ marginBottom: '3rem' }}>
                         <h2 style={{
                             fontFamily: 'Orbitron, sans-serif',
-                            fontSize: '0.75rem',
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            color: style.primaryColor,
-                            marginBottom: '1rem',
+                            fontSize: '0.7rem', letterSpacing: '0.25em',
+                            color: ACCENT, marginBottom: '1rem',
                             paddingBottom: '0.5rem',
-                            borderBottom: `1px solid ${style.primaryColor}30`,
+                            borderBottom: `2px solid ${ACCENT}`,
+                            display: 'inline-block',
                         }}>
                             Hospitality Rider
                         </h2>
-                        <p style={{
-                            lineHeight: '1.8',
-                            color: '#ccc',
-                            fontSize: '1rem',
-                            fontFamily: 'Rajdhani, sans-serif',
-                        }}>
-                            {data.hospitality}
-                        </p>
+                        <p style={{ lineHeight: '1.8', color: '#bbb', fontSize: '1.05rem' }}>{data.hospitality}</p>
                     </section>
                 )}
 
                 {/* Social Links */}
                 {hasSocials && (
-                    <section style={{ marginBottom: '2.5rem' }}>
+                    <section style={{ marginBottom: '3rem' }}>
                         <h2 style={{
                             fontFamily: 'Orbitron, sans-serif',
-                            fontSize: '0.75rem',
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            color: style.primaryColor,
-                            marginBottom: '1rem',
+                            fontSize: '0.7rem', letterSpacing: '0.25em',
+                            color: ACCENT, marginBottom: '1rem',
                             paddingBottom: '0.5rem',
-                            borderBottom: `1px solid ${style.primaryColor}30`,
+                            borderBottom: `2px solid ${ACCENT}`,
+                            display: 'inline-block',
                         }}>
                             Follow
                         </h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.6rem' }}>
                             <SocialButton href={socials.instagram} icon={Instagram} label="Instagram" color="#E1306C" />
                             <SocialButton href={socials.soundcloud} icon={Music} label="SoundCloud" color="#ff5500" />
                             <SocialButton href={socials.twitter} icon={Twitter} label="X / Twitter" color="#ffffff" />
@@ -258,13 +239,11 @@ export const PresskitView = ({ slug }) => {
 
             {/* Footer */}
             <footer style={{
-                textAlign: 'center',
-                padding: '2rem',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
-                color: '#555',
-                fontSize: '0.75rem',
+                textAlign: 'center', padding: '2rem',
+                borderTop: '1px solid rgba(255,255,255,0.05)',
+                color: '#333', fontSize: '0.75rem',
             }}>
-                <p>Made with <a href="./" style={{ color: style.primaryColor, textDecoration: 'none' }}>EasyPresskit</a></p>
+                <p>Made with <a href="./" style={{ color: ACCENT, textDecoration: 'none' }}>EasyPresskit</a></p>
             </footer>
         </div>
     );

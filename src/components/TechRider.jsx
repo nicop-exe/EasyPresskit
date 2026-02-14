@@ -1,51 +1,43 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, RoundedBox } from '@react-three/drei';
+import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
-/* ──────── 3D Equipment Models ──────── */
+const ACCENT = '#ff1744';
 
-const CDJModel = ({ neonColor, hovered }) => {
+/* ──────── CDJ Model ──────── */
+const CDJModel = ({ hovered }) => {
     const groupRef = useRef();
     useFrame((_, delta) => {
-        if (groupRef.current) {
-            groupRef.current.rotation.y += delta * (hovered ? 0.8 : 0.3);
-        }
+        if (groupRef.current) groupRef.current.rotation.y += delta * (hovered ? 0.8 : 0.3);
     });
 
     return (
         <group ref={groupRef} scale={0.55}>
-            {/* Base chassis */}
             <RoundedBox args={[1.6, 0.15, 1.8]} radius={0.03} smoothness={4}>
                 <meshStandardMaterial color="#1a1a1a" metalness={0.7} roughness={0.3} />
             </RoundedBox>
-            {/* Jog wheel */}
             <mesh position={[0, 0.1, 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.45, 0.45, 0.04, 32]} />
                 <meshStandardMaterial color="#222" metalness={0.9} roughness={0.15} />
             </mesh>
-            {/* Jog wheel ring */}
             <mesh position={[0, 0.12, 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
                 <torusGeometry args={[0.45, 0.02, 8, 48]} />
-                <meshStandardMaterial color={neonColor} emissive={neonColor} emissiveIntensity={hovered ? 4 : 2} />
+                <meshStandardMaterial color={ACCENT} emissive={ACCENT} emissiveIntensity={hovered ? 4 : 2} />
             </mesh>
-            {/* Center dot */}
             <mesh position={[0, 0.12, 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
                 <circleGeometry args={[0.08, 24]} />
-                <meshStandardMaterial color={neonColor} emissive={neonColor} emissiveIntensity={1.5} />
+                <meshStandardMaterial color={ACCENT} emissive={ACCENT} emissiveIntensity={1.5} />
             </mesh>
-            {/* Screen */}
             <RoundedBox args={[1.0, 0.02, 0.4]} radius={0.01} position={[0, 0.1, -0.55]}>
-                <meshStandardMaterial color={neonColor} emissive={neonColor} emissiveIntensity={hovered ? 2.5 : 1.2} />
+                <meshStandardMaterial color={ACCENT} emissive={ACCENT} emissiveIntensity={hovered ? 2.5 : 1.2} />
             </RoundedBox>
-            {/* Play/Cue */}
             {[-0.25, 0.25].map((x, i) => (
                 <mesh key={i} position={[x, 0.09, 0.7]}>
                     <boxGeometry args={[0.15, 0.03, 0.08]} />
                     <meshStandardMaterial color={i === 0 ? '#00ff00' : '#ff3333'} emissive={i === 0 ? '#00ff00' : '#ff3333'} emissiveIntensity={1} />
                 </mesh>
             ))}
-            {/* Tempo slider */}
             <mesh position={[0.6, 0.09, 0]}>
                 <boxGeometry args={[0.04, 0.02, 0.8]} />
                 <meshStandardMaterial color="#333" />
@@ -54,23 +46,20 @@ const CDJModel = ({ neonColor, hovered }) => {
     );
 };
 
-const MixerModel = ({ neonColor, hovered, brand = 'pioneer' }) => {
+/* ──────── Mixer Model ──────── */
+const MixerModel = ({ hovered, brand = 'pioneer' }) => {
     const groupRef = useRef();
     const isPioneer = brand === 'pioneer';
 
     useFrame((_, delta) => {
-        if (groupRef.current) {
-            groupRef.current.rotation.y += delta * (hovered ? 0.8 : 0.3);
-        }
+        if (groupRef.current) groupRef.current.rotation.y += delta * (hovered ? 0.8 : 0.3);
     });
 
     return (
         <group ref={groupRef} scale={0.5}>
-            {/* Base */}
             <RoundedBox args={[1.3, 0.2, 2.0]} radius={0.03} smoothness={4}>
                 <meshStandardMaterial color={isPioneer ? '#111' : '#1a1a2e'} metalness={0.6} roughness={0.4} />
             </RoundedBox>
-            {/* Faders */}
             {[-0.35, -0.12, 0.12, 0.35].map((x, i) => (
                 <group key={`f-${i}`}>
                     <mesh position={[x, 0.11, 0.3]}>
@@ -83,21 +72,18 @@ const MixerModel = ({ neonColor, hovered, brand = 'pioneer' }) => {
                     </mesh>
                 </group>
             ))}
-            {/* EQ knobs */}
             {[-0.35, -0.12, 0.12, 0.35].map((x) =>
                 [-0.3, -0.5, -0.7].map((z, j) => (
                     <mesh key={`k-${x}-${j}`} position={[x, 0.13, z]}>
                         <cylinderGeometry args={[0.04, 0.04, 0.04, 16]} />
-                        <meshStandardMaterial color={neonColor} emissive={neonColor} emissiveIntensity={hovered ? 2 : 0.8} />
+                        <meshStandardMaterial color={ACCENT} emissive={ACCENT} emissiveIntensity={hovered ? 2 : 0.8} />
                     </mesh>
                 ))
             )}
-            {/* Crossfader */}
             <mesh position={[0, 0.11, 0.75]}>
                 <boxGeometry args={[0.5, 0.02, 0.04]} />
                 <meshStandardMaterial color="#444" />
             </mesh>
-            {/* VU meters */}
             {[-0.2, 0.2].map((x, i) => (
                 <group key={`vu-${i}`}>
                     {[0, 1, 2, 3].map((j) => (
@@ -116,17 +102,12 @@ const MixerModel = ({ neonColor, hovered, brand = 'pioneer' }) => {
     );
 };
 
-/* ──────── Single Equipment Card (video-game inventory slot) ──────── */
-
-const EquipmentCard = ({ item, neonColor, isSelected, onToggle }) => {
+/* ──────── Equipment Card ──────── */
+const EquipmentCard = ({ item, isSelected, onToggle }) => {
     const [hovered, setHovered] = React.useState(false);
 
-    const borderColor = isSelected ? neonColor : (hovered ? neonColor : '#333');
-    const bgColor = isSelected
-        ? `${neonColor}18`
-        : hovered
-            ? `${neonColor}10`
-            : 'rgba(10, 10, 15, 0.9)';
+    const borderColor = isSelected ? ACCENT : (hovered ? ACCENT : '#222');
+    const bgColor = isSelected ? `${ACCENT}15` : hovered ? `${ACCENT}08` : '#0d0d0d';
 
     return (
         <div
@@ -134,88 +115,53 @@ const EquipmentCard = ({ item, neonColor, isSelected, onToggle }) => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
-                position: 'relative',
-                width: '160px',
-                border: `2px solid ${borderColor}`,
-                borderRadius: '8px',
-                background: bgColor,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: hovered
-                    ? `0 0 20px ${neonColor}55, inset 0 0 20px ${neonColor}15`
-                    : isSelected
-                        ? `0 0 12px ${neonColor}33`
-                        : '0 2px 8px rgba(0,0,0,0.5)',
-                transform: hovered ? 'translateY(-4px) scale(1.03)' : 'translateY(0) scale(1)',
+                position: 'relative', width: '150px',
+                border: `2px solid ${borderColor}`, borderRadius: '8px',
+                background: bgColor, cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                boxShadow: hovered ? `0 0 20px ${ACCENT}30` : isSelected ? `0 0 12px ${ACCENT}20` : '0 2px 8px rgba(0,0,0,0.5)',
+                transform: hovered ? 'translateY(-3px) scale(1.02)' : 'none',
                 overflow: 'hidden',
             }}
         >
-            {/* 3D Preview area */}
-            <div style={{ width: '100%', height: '130px', position: 'relative' }}>
-                <Canvas
-                    camera={{ position: [1.5, 1.5, 1.5], fov: 35 }}
-                    style={{ background: 'transparent' }}
-                >
+            <div style={{ width: '100%', height: '120px', position: 'relative' }}>
+                <Canvas camera={{ position: [1.5, 1.5, 1.5], fov: 35 }} style={{ background: 'transparent' }}>
                     <ambientLight intensity={1} />
-                    <pointLight position={[3, 3, 3]} intensity={1.5} color={hovered ? neonColor : '#ffffff'} />
-                    <pointLight position={[-2, 2, -2]} intensity={0.5} color={neonColor} />
-
-                    {item.type === 'player' ? (
-                        <CDJModel neonColor={neonColor} hovered={hovered} />
-                    ) : (
-                        <MixerModel neonColor={neonColor} hovered={hovered} brand={item.brand} />
-                    )}
+                    <pointLight position={[3, 3, 3]} intensity={1.5} color={hovered ? ACCENT : '#fff'} />
+                    <pointLight position={[-2, 2, -2]} intensity={0.5} color={ACCENT} />
+                    {item.type === 'player'
+                        ? <CDJModel hovered={hovered} />
+                        : <MixerModel hovered={hovered} brand={item.brand} />
+                    }
                 </Canvas>
 
-                {/* Selected badge */}
                 {isSelected && (
                     <div style={{
-                        position: 'absolute',
-                        top: '6px',
-                        right: '6px',
-                        background: neonColor,
-                        color: '#000',
-                        fontSize: '0.6rem',
-                        fontWeight: 'bold',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        fontFamily: 'var(--font-orbitron)',
-                        letterSpacing: '0.05em',
+                        position: 'absolute', top: '5px', right: '5px',
+                        background: ACCENT, color: '#000',
+                        fontSize: '0.55rem', fontWeight: 'bold',
+                        padding: '2px 5px', borderRadius: '3px',
+                        fontFamily: 'var(--font-display)', letterSpacing: '0.05em',
                     }}>
                         ✓ ADDED
                     </div>
                 )}
             </div>
 
-            {/* Name label */}
             <div style={{
-                padding: '8px 10px',
-                borderTop: `1px solid ${borderColor}`,
-                textAlign: 'center',
-                fontFamily: 'var(--font-orbitron)',
-                fontSize: '0.75rem',
-                color: hovered || isSelected ? neonColor : '#ccc',
-                letterSpacing: '0.08em',
-                background: hovered
-                    ? `linear-gradient(180deg, ${neonColor}10, ${neonColor}05)`
-                    : 'transparent',
-                transition: 'all 0.3s ease',
+                padding: '6px 8px', borderTop: `1px solid ${borderColor}`,
+                textAlign: 'center', fontFamily: 'var(--font-display)',
+                fontSize: '0.7rem', color: hovered || isSelected ? ACCENT : '#999',
+                letterSpacing: '0.08em', transition: 'all 0.25s ease',
             }}>
                 {item.name}
             </div>
 
-            {/* Type badge */}
             <div style={{
-                position: 'absolute',
-                top: '6px',
-                left: '6px',
-                background: 'rgba(0,0,0,0.7)',
-                color: '#888',
-                fontSize: '0.5rem',
-                padding: '2px 5px',
-                borderRadius: '3px',
-                textTransform: 'uppercase',
-                fontFamily: 'var(--font-body)',
+                position: 'absolute', top: '5px', left: '5px',
+                background: 'rgba(0,0,0,0.7)', color: '#666',
+                fontSize: '0.45rem', padding: '2px 4px', borderRadius: '3px',
+                textTransform: 'uppercase', fontFamily: 'var(--font-body)',
                 letterSpacing: '0.1em',
             }}>
                 {item.type}
@@ -224,9 +170,8 @@ const EquipmentCard = ({ item, neonColor, isSelected, onToggle }) => {
     );
 };
 
-/* ──────── Main TechRider component ──────── */
-
-export const TechRider = ({ primaryColor, onAddEquipment, selectedEquipment = [] }) => {
+/* ──────── Main TechRider ──────── */
+export const TechRider = ({ onAddEquipment, selectedEquipment = [] }) => {
     const equipmentData = [
         { id: 'cdj3000', name: 'CDJ-3000', type: 'player', brand: 'pioneer' },
         { id: 'a9', name: 'DJM-A9', type: 'mixer', brand: 'pioneer' },
@@ -237,17 +182,13 @@ export const TechRider = ({ primaryColor, onAddEquipment, selectedEquipment = []
 
     return (
         <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '14px',
-            justifyContent: 'center',
-            padding: '16px 8px',
+            display: 'flex', flexWrap: 'wrap', gap: '10px',
+            justifyContent: 'center', padding: '10px 0',
         }}>
             {equipmentData.map((item) => (
                 <EquipmentCard
                     key={item.id}
                     item={item}
-                    neonColor={primaryColor}
                     isSelected={selectedEquipment.includes(item.name)}
                     onToggle={() => onAddEquipment(item.name)}
                 />
