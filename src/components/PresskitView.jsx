@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { loadPresskit } from '../services/presskitService';
 import { Music, Instagram, Youtube, Twitter, ExternalLink } from 'lucide-react';
+import { DJBoothPreview } from './DJBooth3D';
 
 const ACCENT = '#ff1744';
 
@@ -198,6 +199,14 @@ export const PresskitView = ({ slug }) => {
                                     {item}
                                 </span>
                             ))}
+                        </div>
+
+                        {/* 3D Booth Preview in Public View */}
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <DJBoothPreview
+                                selectedEquipmentNames={data.selectedGear || []}
+                                cdjCount={data.cdjCount || 2}
+                            />
                         </div>
                     </section>
                 )}
