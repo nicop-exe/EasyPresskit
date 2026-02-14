@@ -42,7 +42,7 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 onMouseLeave={() => setHovered(false)}
                 style={{ width: '100%', height: '100px', position: 'relative', flexShrink: 0 }}
             >
-                <Canvas camera={{ position: [3, 3, 3], fov: 28 }} style={{ background: 'transparent' }}>
+                <Canvas camera={{ position: [2.2, 2.5, 2.2], fov: 35 }} style={{ background: 'transparent' }}>
                     <ambientLight intensity={1.2} />
                     <directionalLight position={[3, 4, 3]} intensity={1} />
                     <directionalLight position={[-2, 2, -2]} intensity={0.4} />

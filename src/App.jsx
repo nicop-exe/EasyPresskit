@@ -4,6 +4,8 @@ import { TechRider } from './components/TechRider';
 import { PresskitView } from './components/PresskitView';
 import { savePresskit } from './services/presskitService';
 import { Camera, FileText, User, Share2, Loader, Instagram, Youtube, Music, Twitter } from 'lucide-react';
+import { PricingCard } from './components/PricingCard';
+import { PaywallModal } from './components/PaywallModal';
 import { motion } from 'framer-motion';
 
 function getSlugFromHash() {
@@ -150,6 +152,14 @@ function CreatorStudio() {
     if (media.length >= 6) { return alert('Max 6 media items allowed'); }
     const file = e.target.files[0];
     if (file) {
+      // Free Tier: Max 2MB for gallery items too
+      if (!isPro && file.size > 2 * 1024 * 1024) {
+        alert('Free Plan Limit: Please upload images smaller than 2MB or Upgrade to Pro.');
+        setPaywallFeature('High-Res Gallery');
+        setShowPaywall(true);
+        return;
+      }
+
       if (file.size > 5 * 1024 * 1024) return alert('File too large (max 5MB source)');
 
       const reader = new FileReader();
@@ -168,7 +178,8 @@ function CreatorStudio() {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const MAX_SIZE = 1000; // Slightly larger for gallery
+          // Pro: 1600px, Free: 1000px
+          const MAX_SIZE = isPro ? 1600 : 1000;
 
           if (width > height) {
             if (width > MAX_SIZE) {
@@ -185,8 +196,10 @@ function CreatorStudio() {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          // Stronger compression for array items to save space
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+
+          // Pro: 0.8, Free: 0.5
+          const quality = isPro ? 0.8 : 0.5;
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
           setMedia(prev => [...prev, { type: 'image', url: dataUrl }]);
         };
         img.src = event.target.result;
@@ -196,6 +209,9 @@ function CreatorStudio() {
   };
 
   const addYoutube = (url) => {
+    // Pro Feature: YouTube Embeds
+    if (!checkProFeature('YouTube Embeds')) return;
+
     if (media.length >= 6) { return alert('Max 6 media items allowed'); }
     if (!url) return;
 
@@ -297,6 +313,28 @@ function CreatorStudio() {
       </header>
 
       <main className="container">
+
+        {/* Pro Subscription Modal */}
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          featureName={paywallFeature}
+        />
+
+        {/* Pricing Section (Visible if not Pro) */}
+        {!isPro && (
+          <div style={{ marginBottom: '3rem' }}>
+            <PricingCard isPro={isPro} onSubscribe={() => {
+              // Simulating Checkout for MVP
+              if (confirm('Proceed to Stripe Checkout? (Simulation)')) {
+                alert('Payment Successful! You are now a Pro member.');
+                setIsPro(true);
+                localStorage.setItem('ep_isPro', 'true');
+              }
+            }} />
+          </div>
+        )}
+
         <div className="grid grid-2">
 
           {/* ── LEFT: Editor ── */}
