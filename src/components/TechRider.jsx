@@ -3,7 +3,16 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, OrbitControls, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
-/* ──────── GLTF Model Components ──────── */
+/* ──────── Loading spinner ──────── */
+const LoadingFallback = () => (
+    <group>
+        <RoundedBox args={[1, 0.2, 1]}>
+            <meshStandardMaterial color="#333" />
+        </RoundedBox>
+    </group>
+);
+
+/* ──────── GLTF Model Components (Hover Spin) ──────── */
 
 const CDJGLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) => {
     const groupRef = useRef();
@@ -78,15 +87,7 @@ const GenericMixerModel = ({ hovered }) => {
 useGLTF.preload('./3D/CDJ3000.glb');
 useGLTF.preload('./3D/DJMA9.glb');
 
-/* ──────── Loading spinner ──────── */
-const LoadingFallback = () => (
-    <mesh>
-        <boxGeometry args={[0.3, 0.3, 0.3]} />
-        <meshStandardMaterial color="#333" wireframe />
-    </mesh>
-);
-
-/* ──────── Equipment Card ──────── */
+/* ──────── Equipment Card with Small Preview ──────── */
 const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => {
     const [hovered, setHovered] = React.useState(false);
 
@@ -188,86 +189,8 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
     );
 };
 
-/* ──────── DJ Booth Preview (CDJs flanking the mixer) ──────── */
-const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
-    const hasPlayer = selectedEquipment.some(e => e.type === 'player');
-    const hasMixer = selectedEquipment.some(e => e.type === 'mixer');
-    const mixer = selectedEquipment.find(e => e.type === 'mixer');
+/* ──────── DJ Booth Setup Preview (Static Models) ──────── */
 
-    if (!hasPlayer && !hasMixer) return null;
-
-    // Calculate positions: CDJs evenly spaced on left and right of mixer
-    const leftCdjs = Math.ceil(cdjCount / 2);
-    const rightCdjs = Math.floor(cdjCount / 2);
-    const spacing = 2.2;
-
-    return (
-        <div style={{
-            marginTop: '1.5rem',
-            border: '1px solid #1a1a1a',
-            borderRadius: '10px',
-            background: '#080808',
-            overflow: 'hidden',
-        }}>
-            <div style={{
-                padding: '0.5rem 1rem',
-                borderBottom: '1px solid #1a1a1a',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-                <span style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '0.55rem', letterSpacing: '0.2em',
-                    color: '#555', textTransform: 'uppercase',
-                }}>
-                    DJ Booth Setup
-                </span>
-                <span style={{ fontSize: '0.6rem', color: '#333' }}>
-                    {cdjCount}x CDJ {mixer ? `+ ${mixer.name}` : ''}
-                </span>
-            </div>
-
-            <div style={{ height: '260px' }}>
-                <Canvas camera={{ position: [0, 5, 8], fov: 45 }}>
-                    <ambientLight intensity={1} />
-                    <directionalLight position={[5, 6, 5]} intensity={0.8} />
-                    <directionalLight position={[-3, 4, -3]} intensity={0.3} />
-
-                    {/* Ground plane */}
-                    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]}>
-                        <planeGeometry args={[15, 8]} />
-                        <meshStandardMaterial color="#0a0a0a" />
-                    </mesh>
-
-                    <Suspense fallback={<LoadingFallback />}>
-                        {/* Left CDJs */}
-                        {hasPlayer && Array.from({ length: leftCdjs }).map((_, i) => (
-                            <CDJBoothUnit key={`l-${i}`} position={[-(leftCdjs - i) * spacing, 0, 0]} />
-                        ))}
-
-                        {/* Center Mixer */}
-                        {hasMixer && (
-                            mixer?.id === 'a9' ? (
-                                <DJMABoothUnit position={[0, 0, 0]} />
-                            ) : (
-                                <GenericMixerBooth position={[0, 0, 0]} />
-                            )
-                        )}
-
-                        {/* Right CDJs */}
-                        {hasPlayer && Array.from({ length: rightCdjs }).map((_, i) => (
-                            <CDJBoothUnit key={`r-${i}`} position={[(i + 1) * spacing, 0, 0]} />
-                        ))}
-                    </Suspense>
-
-
-
-                </Canvas>
-            </div>
-        </div>
-    );
-};
-
-/* Static booth models (no spin) */
 const CDJBoothUnit = ({ position }) => {
     const { scene } = useGLTF('./3D/CDJ3000.glb');
     const clonedScene = React.useMemo(() => scene.clone(true), [scene]);
@@ -295,6 +218,84 @@ const GenericMixerBooth = ({ position }) => (
         </RoundedBox>
     </group>
 );
+
+const DJBoothPreview = ({ selectedEquipment, cdjCount }) => {
+    const hasPlayer = selectedEquipment.some(e => e.type === 'player');
+    const hasMixer = selectedEquipment.some(e => e.type === 'mixer');
+    const mixer = selectedEquipment.find(e => e.type === 'mixer');
+
+    // Always render container and canvas with grid/floor, 
+    // simply skip rendering equipment if none selected.
+
+    // Calculate positions if equipment exists
+    const leftCdjs = Math.ceil(cdjCount / 2);
+    const rightCdjs = Math.floor(cdjCount / 2);
+    const spacing = 2.2;
+
+    return (
+        <div style={{
+            marginTop: '1.5rem',
+            border: '1px solid #1a1a1a',
+            borderRadius: '10px',
+            background: '#080808',
+            overflow: 'hidden',
+        }}>
+            <div style={{
+                padding: '0.5rem 1rem',
+                borderBottom: '1px solid #1a1a1a',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+                <span style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '0.55rem', letterSpacing: '0.2em',
+                    color: '#555', textTransform: 'uppercase',
+                }}>
+                    DJ Booth Setup
+                </span>
+                <span style={{ fontSize: '0.6rem', color: '#333' }}>
+                    {hasPlayer || hasMixer ? `${cdjCount}x CDJ ${mixer ? `+ ${mixer.name}` : ''}` : 'Empty Booth'}
+                </span>
+            </div>
+
+            <div style={{ height: '260px' }}>
+                <Canvas camera={{ position: [0, 5, 8], fov: 45 }}>
+                    <ambientLight intensity={1} />
+                    <directionalLight position={[5, 6, 5]} intensity={0.8} />
+                    <directionalLight position={[-3, 4, -3]} intensity={0.3} />
+
+                    {/* Ground plane */}
+                    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]}>
+                        <planeGeometry args={[15, 8]} />
+                        <meshStandardMaterial color="#0a0a0a" />
+                    </mesh>
+
+                    <gridHelper args={[20, 20, 0x222222, 0x111111]} position={[0, -0.29, 0]} />
+
+                    <Suspense fallback={<LoadingFallback />}>
+                        {/* Render LEFT CDJs */}
+                        {hasPlayer && Array.from({ length: leftCdjs }).map((_, i) => (
+                            <CDJBoothUnit key={`l-${i}`} position={[-(leftCdjs - i) * spacing, 0, 0]} />
+                        ))}
+
+                        {/* Render MIXER */}
+                        {hasMixer && (
+                            mixer?.id === 'a9' ? (
+                                <DJMABoothUnit position={[0, 0, 0]} />
+                            ) : (
+                                <GenericMixerBooth position={[0, 0, 0]} />
+                            )
+                        )}
+
+                        {/* Render RIGHT CDJs */}
+                        {hasPlayer && Array.from({ length: rightCdjs }).map((_, i) => (
+                            <CDJBoothUnit key={`r-${i}`} position={[(i + 1) * spacing, 0, 0]} />
+                        ))}
+                    </Suspense>
+                </Canvas>
+            </div>
+        </div>
+    );
+};
 
 /* ──────── Main TechRider ──────── */
 export const TechRider = ({ onAddEquipment, selectedEquipment = [], cdjCount = 2, onCdjCountChange }) => {
