@@ -8,13 +8,14 @@ function App() {
   const [profilePic, setProfilePic] = useState(null);
   const [bio, setBio] = useState('');
   const [hospitality, setHospitality] = useState('');
-  const [artistInput, setArtistInput] = useState('');
+  const [artistName, setArtistName] = useState('');
+  const [artistConcept, setArtistConcept] = useState('');
   const [uniqueStyle, setUniqueStyle] = useState(generateUniqueStyle(''));
   const [selectedGear, setSelectedGear] = useState([]);
 
   useEffect(() => {
-    setUniqueStyle(generateUniqueStyle(artistInput));
-  }, [artistInput]);
+    setUniqueStyle(generateUniqueStyle(artistConcept));
+  }, [artistConcept]);
 
   const toggleGear = (gearName) => {
     setSelectedGear(prev => [...prev, gearName]);
@@ -52,14 +53,28 @@ function App() {
 
             <div className="grid" style={{ gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem' }}><User size={16} /> Artist Name / Concept</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem' }}><User size={16} /> Artist Name</label>
                 <input
                   type="text"
-                  placeholder="Type something to change styles..."
-                  value={artistInput}
-                  onChange={(e) => setArtistInput(e.target.value)}
+                  placeholder="e.g. DJ Tiesto"
+                  value={artistName}
+                  onChange={(e) => setArtistName(e.target.value)}
                   style={{ width: '100%' }}
                 />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem' }}>Visual Concept / Vibe</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Cyberpunk Acid Techno"
+                  value={artistConcept}
+                  onChange={(e) => setArtistConcept(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '0.2rem' }}>
+                  This field determines your unique color palette and glowing effects.
+                </p>
               </div>
 
               <div style={{ textAlign: 'center' }}>
@@ -128,7 +143,7 @@ function App() {
                   style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid var(--neon-cyan)', objectFit: 'cover' }}
                 />
               )}
-              <h3 className="neon-text-cyan" style={{ marginTop: '1rem' }}>{artistInput || 'Artist Name'}</h3>
+              <h3 className="neon-text-cyan" style={{ marginTop: '1rem' }}>{artistName || 'Artist Name'}</h3>
               <p style={{ marginTop: '1rem', fontStyle: 'italic' }}>{bio || 'Biography will appear here...'}</p>
 
               <div style={{ marginTop: '2rem', textAlign: 'left' }}>
@@ -164,7 +179,7 @@ function App() {
                 style={{ width: '100%' }}
                 className="neon-border-cyan"
                 onClick={() => {
-                  const slug = artistInput.toLowerCase().replace(/\s+/g, '-');
+                  const slug = artistName.toLowerCase().replace(/\s+/g, '-');
                   alert(`Presskit link generated: https://easypresskit.io/${slug || 'artist'}`);
                 }}
               >
