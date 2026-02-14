@@ -48,9 +48,7 @@ export async function savePresskit({ artistName, artistConcept, bio, hospitality
     };
 
     console.log('Saving to Firestore...', presskitData);
-    alert('Checkpoint 1: Saving to Firestore database...');
     await setDoc(doc(db, 'presskits', slug), presskitData);
-    alert('Checkpoint 2: Save successful!');
     console.log('Saved successfully!');
 
     return { slug };

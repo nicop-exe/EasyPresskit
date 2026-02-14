@@ -213,7 +213,6 @@ function CreatorStudio() {
     const sizeInChars = payloadString.length;
     const sizeInMB = sizeInChars / (1024 * 1024);
     console.log(`Payload size: ${sizeInMB.toFixed(2)} MB`);
-    alert(`Checkpoint A: Size is ${sizeInMB.toFixed(2)} MB`);
 
     if (sizeInMB > 0.95) {
       setSaving(false);
@@ -222,7 +221,6 @@ function CreatorStudio() {
     }
 
     try {
-      alert('Checkpoint B: Initiating Database Write...');
       // Race the save operation against a 90-second timeout
       const savePromise = savePresskit({
         artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
@@ -233,15 +231,13 @@ function CreatorStudio() {
       });
 
       const { slug } = await Promise.race([savePromise, timeoutPromise]);
-      alert('Checkpoint C: Write complete! Finalizing link...');
 
       const base = window.location.origin + window.location.pathname;
       const finalLink = `${base}#/artist/${slug}`;
       setSavedLink(finalLink);
-      alert('SUCCESS! Presskit saved. Click the Red Button to view.');
     } catch (err) {
       console.error('Save error details:', err);
-      alert(`SAVE FAILED: ${err.message || 'Unknown error'}`);
+      alert(`Error saving presskit: ${err.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -256,7 +252,7 @@ function CreatorStudio() {
         borderBottom: '1px solid var(--border)',
       }}>
         <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', color: '#fff', letterSpacing: '0.1em' }}>
-          EASYPRESSKIT <span style={{ fontSize: '0.6rem', color: '#ff1744' }}>v2.4</span>
+          EASYPRESSKIT
         </h1>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
           Create your official press kit
