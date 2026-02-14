@@ -152,11 +152,11 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
                 <span style={{
                     fontFamily: 'Rajdhani, sans-serif',
                     fontSize: '0.55rem', letterSpacing: '0.2em',
-                    color: '#555', textTransform: 'uppercase',
+                    color: '#888', textTransform: 'uppercase',
                 }}>
                     DJ Booth Setup
                 </span>
-                <span style={{ fontSize: '0.6rem', color: '#333', fontFamily: 'Orbitron, sans-serif' }}>
+                <span style={{ fontSize: '0.6rem', color: '#fff', opacity: 0.8, fontFamily: 'Orbitron, sans-serif' }}>
                     {hasPlayer || hasMixer ? `${cdjCount}x CDJ ${mixer ? `+ ${mixer.name}` : ''}` : 'Empty Booth'}
                 </span>
             </div>
