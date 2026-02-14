@@ -20,7 +20,7 @@ function generateSlug(name) {
  * Save a presskit to Firestore (and photo to Storage).
  * Returns { slug }.
  */
-export async function savePresskit({ artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials }) {
+export async function savePresskit({ artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials, media }) {
     console.log('Starting savePresskit for:', artistName);
     const slug = generateSlug(artistName);
     console.log('Generated slug:', slug);
