@@ -104,6 +104,8 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 position: 'relative',
                 width: isMobile ? 'calc(50% - 10px)' : '155px',
                 minWidth: isMobile ? '0' : '155px',
+                display: 'flex', flexDirection: 'column',
+                minHeight: isMobile ? '185px' : 'auto',
                 border: `1px solid ${borderColor}`, borderRadius: '8px',
                 background: bgColor, cursor: 'pointer',
                 transition: 'all 0.25s ease',
@@ -117,9 +119,9 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                 onClick={onToggle}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                style={{ width: '100%', height: isMobile ? '95px' : '115px', position: 'relative' }}
+                style={{ width: '100%', height: isMobile ? '85px' : '115px', position: 'relative', flexShrink: 0 }}
             >
-                <Canvas camera={{ position: [3, 3, 3], fov: 40 }} style={{ background: 'transparent' }}>
+                <Canvas camera={{ position: [3, 3, 3], fov: isMobile ? 32 : 40 }} style={{ background: 'transparent' }}>
                     <ambientLight intensity={1.2} />
                     <directionalLight position={[3, 4, 3]} intensity={1} />
                     <directionalLight position={[-2, 2, -2]} intensity={0.4} />
@@ -150,10 +152,11 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
 
             {/* Name */}
             <div style={{
-                padding: '6px 8px', borderTop: `1px solid ${borderColor}`,
+                padding: '6px 4px', borderTop: `1px solid ${borderColor}`,
                 textAlign: 'center', fontFamily: 'var(--font-display)',
-                fontSize: '0.65rem', color: isSelected ? '#fff' : '#888',
-                letterSpacing: '0.08em', transition: 'all 0.25s ease',
+                fontSize: isMobile ? '0.55rem' : '0.65rem', color: isSelected ? '#fff' : '#888',
+                letterSpacing: '0.05em', transition: 'all 0.25s ease',
+                flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'
             }} onClick={onToggle} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
                 {item.name}
             </div>
@@ -321,6 +324,8 @@ export const TechRider = ({ onAddEquipment, selectedEquipment = [], cdjCount = 2
                 gridTemplateColumns: (typeof window !== 'undefined' && window.innerWidth < 600) ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(155px, 1fr))',
                 gap: '10px',
                 padding: '10px 0',
+                justifyItems: 'center',
+                justifyContent: 'center',
             }}>
                 {equipmentData.map((item) => (
                     <EquipmentCard
