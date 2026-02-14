@@ -122,15 +122,25 @@ function CreatorStudio() {
     };
 
     try {
-      const { slug } = await savePresskit({
+      // Race the save operation against a 15-second timeout
+      const savePromise = savePresskit({
         artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials
       });
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Connection timed out. Please check your internet connection.')), 15000);
+      });
+
+      const { slug } = await Promise.race([savePromise, timeoutPromise]);
+
       const base = window.location.origin + window.location.pathname;
       setSavedLink(`${base}#/artist/${slug}`);
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
-    } finally { setSaving(false); }
+      alert(`Error saving presskit: ${err.message || 'Unknown error'}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

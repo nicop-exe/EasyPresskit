@@ -21,13 +21,15 @@ function generateSlug(name) {
  * Returns { slug }.
  */
 export async function savePresskit({ artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials }) {
+    console.log('Starting savePresskit for:', artistName);
     const slug = generateSlug(artistName);
+    console.log('Generated slug:', slug);
+
     let photoURL = null;
 
     // Save profile photo as base64 string directly
-    // Ideally we should compress this on the client side, but for now 
-    // we assume the user uploads a reasonable size or the string fits in Firestore (limit 1MB)
     if (profilePic) {
+        console.log('Profile pic size:', profilePic.length);
         photoURL = profilePic;
     }
 
@@ -44,7 +46,9 @@ export async function savePresskit({ artistName, artistConcept, bio, hospitality
         updatedAt: new Date().toISOString(),
     };
 
+    console.log('Saving to Firestore...', presskitData);
     await setDoc(doc(db, 'presskits', slug), presskitData);
+    console.log('Saved successfully!');
 
     return { slug };
 }
