@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { generateUniqueStyle } from './utils/uniqueness';
 import { TechRider } from './components/TechRider';
 import { PresskitView } from './components/PresskitView';
-import { savePresskit } from './services/presskitService';
+import { savePresskit, checkProStatus } from './services/presskitService';
 import { Camera, FileText, User, Share2, Loader, Instagram, Youtube, Music, Twitter } from 'lucide-react';
 import { PricingCard } from './components/PricingCard';
 import { PaywallModal } from './components/PaywallModal';
@@ -57,6 +57,10 @@ function CreatorStudio() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState('');
 
+  // Derive slug from artistName for Stripe & Firestore
+  const currentSlug = artistName
+    .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || '';
+
   const [selectedGear, setSelectedGear] = useState(() => {
     try {
       const saved = localStorage.getItem('ep_selectedGear_v2');
@@ -108,17 +112,46 @@ function CreatorStudio() {
         localStorage.removeItem('ep_profilePic_v2');
       }
 
-      // Simulate checking pro status
+      // Check pro status from localStorage as fallback
       const savedPro = localStorage.getItem('ep_isPro_v2');
-      if (savedPro === 'true') {
-        // Only set logic validation here if needed, but since we read on render...
-        // Actually, state is local, so we just trust localStorage for MVP
-        if (!isPro) setIsPro(true);
+      if (savedPro === 'true' && !isPro) {
+        setIsPro(true);
       }
     } catch (error) {
       console.warn('LocalStorage quota exceeded or error:', error);
     }
   }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic, isPro]);
+
+  // Check Firestore isPro status when slug changes
+  useEffect(() => {
+    if (!currentSlug) return;
+    checkProStatus(currentSlug).then(proStatus => {
+      if (proStatus) {
+        setIsPro(true);
+        localStorage.setItem('ep_isPro_v2', 'true');
+      }
+    }).catch(err => console.warn('Pro status check failed:', err));
+  }, [currentSlug]);
+
+  // Handle Stripe success redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      // Clean the URL
+      window.history.replaceState({}, '', window.location.pathname);
+      // Recheck pro status after a short delay (webhook may take a moment)
+      setTimeout(() => {
+        if (currentSlug) {
+          checkProStatus(currentSlug).then(proStatus => {
+            if (proStatus) {
+              setIsPro(true);
+              localStorage.setItem('ep_isPro_v2', 'true');
+            }
+          });
+        }
+      }, 3000);
+    }
+  }, []);
 
   // Helper to check pro feature
   const checkProFeature = (featureName) => {
@@ -263,6 +296,24 @@ function CreatorStudio() {
     setMedia(prev => [...prev, { type: 'youtube', url: videoId }]);
   };
 
+  const addSoundCloud = (url) => {
+    // Pro Feature: SoundCloud Embeds
+    if (!checkProFeature('SoundCloud Embeds')) return;
+
+    if (media.length >= 6) { return alert('Max 6 media items allowed'); }
+    if (!url) return;
+
+    // Validate SoundCloud URL
+    // e.g. https://soundcloud.com/artist/track
+    const regExp = /^https?:\/\/(soundcloud\.com|snd\.sc)\/(.*)$/;
+    const match = url.match(regExp);
+    if (match) {
+      setMedia(prev => [...prev, { type: 'soundcloud', url: url }]);
+    } else {
+      return alert('Invalid SoundCloud URL. Must be a full link to a track.');
+    }
+  };
+
   const removeMedia = (index) => {
     setMedia(prev => prev.filter((_, i) => i !== index));
   };
@@ -337,19 +388,13 @@ function CreatorStudio() {
           isOpen={showPaywall}
           onClose={() => setShowPaywall(false)}
           featureName={paywallFeature}
+          slug={currentSlug}
         />
 
         {/* Pricing Section (Visible if not Pro) */}
         {!isPro && (
           <div style={{ marginBottom: '3rem' }}>
-            <PricingCard isPro={isPro} onSubscribe={() => {
-              // Simulating Checkout for MVP
-              if (confirm('Proceed to Stripe Checkout? (Simulation)')) {
-                alert('Payment Successful! You are now a Pro member.');
-                setIsPro(true);
-                localStorage.setItem('ep_isPro_v2', 'true');
-              }
-            }} />
+            <PricingCard isPro={isPro} slug={currentSlug} />
           </div>
         )}
 
@@ -407,19 +452,26 @@ function CreatorStudio() {
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
                 <input
                   type="text"
-                  placeholder="Paste YouTube Link"
-                  id="yt-input"
+                  placeholder="Paste YouTube or SoundCloud Link"
+                  id="media-input"
                   style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}
                 />
                 <button
                   onClick={() => {
-                    const input = document.getElementById('yt-input');
-                    addYoutube(input.value);
+                    const input = document.getElementById('media-input');
+                    const val = input.value;
+                    if (val.includes('youtu')) {
+                      addYoutube(val);
+                    } else if (val.includes('soundcloud.com')) {
+                      addSoundCloud(val);
+                    } else {
+                      alert('Please paste a valid YouTube or SoundCloud link.');
+                    }
                     input.value = '';
                   }}
                   style={{ padding: '0.5rem', fontSize: '0.8rem' }}
                 >
-                  Add Video
+                  Add Media
                 </button>
               </div>
               <div style={{ marginBottom: '0.8rem' }}>
@@ -432,10 +484,16 @@ function CreatorStudio() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 {media.map((item, index) => (
                   <div key={index} style={{ position: 'relative', aspectRatio: '16/9', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
-                    {item.type === 'image' ? (
+                    {item.type === 'image' && (
                       <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
+                    )}
+                    {item.type === 'youtube' && (
                       <img src={`https://img.youtube.com/vi/${item.url}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
+                    {item.type === 'soundcloud' && (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(45deg, #ff5500, #ff8800)' }}>
+                        <Music size={48} color="white" />
+                      </div>
                     )}
                     <button
                       onClick={() => removeMedia(index)}

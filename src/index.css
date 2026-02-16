@@ -180,3 +180,184 @@ label {
   color: var(--text-main);
   margin-bottom: 0.4rem;
 }
+/* ── Pricing ── */
+.pricing-container {
+  display: grid;
+  /* Mobile: 2 columns, side by side */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  padding: 1rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  position: relative;
+  border-radius: 12px;
+}
+
+.pricing-card.free {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pricing-card.pro {
+  background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(20, 0, 20, 0.4) 100%);
+  border: 1px solid #ff1744;
+  box-shadow: 0 0 15px rgba(255, 23, 68, 0.1);
+}
+
+.pricing-tag {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff1744;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.pricing-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pricing-price {
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.pricing-price span {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.pricing-desc {
+  color: #aaa;
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.pricing-features {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.pricing-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: #eee;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.pricing-features li svg {
+  min-width: 14px; /* Ensure icon doesn't shrink */
+}
+
+.pricing-features li.dim {
+  color: #888;
+}
+
+.pricing-button {
+  margin-top: auto;
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.pricing-button.current {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #888;
+  cursor: default;
+}
+
+.pricing-button.upgrade {
+  border: none;
+  background: #ff1744;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3);
+}
+
+/* Desktop Overrides */
+@media (min-width: 768px) {
+  .pricing-container {
+    gap: 2rem;
+    padding: 2rem;
+    /* On desktop, keep 2 columns but bigger */
+  }
+
+  .pricing-card {
+    padding: 2rem;
+    gap: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .pricing-card.pro {
+     box-shadow: 0 0 30px rgba(255, 23, 68, 0.15);
+  }
+
+  .pricing-tag {
+    top: -12px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+  }
+
+  .pricing-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .pricing-price {
+    font-size: 2.5rem;
+  }
+
+  .pricing-price span {
+    font-size: 1rem;
+  }
+
+  .pricing-desc {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .pricing-features {
+    gap: 1rem;
+  }
+
+  .pricing-features li {
+    gap: 0.8rem;
+    font-size: 1rem;
+  }
+  
+  .pricing-features li svg {
+    min-width: auto;
+  }
+
+  .pricing-button {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}

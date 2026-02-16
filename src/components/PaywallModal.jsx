@@ -2,8 +2,19 @@ import React from 'react';
 import { Lock, Zap, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const PaywallModal = ({ isOpen, onClose, featureName }) => {
+const PAYMENT_LINK = import.meta.env.VITE_STRIPE_PAYMENT_LINK;
+
+export const PaywallModal = ({ isOpen, onClose, featureName, slug }) => {
     if (!isOpen) return null;
+
+    const handleUpgrade = () => {
+        if (!slug) {
+            alert('Please save your presskit first to generate a link before upgrading.');
+            return;
+        }
+        const checkoutUrl = `${PAYMENT_LINK}?client_reference_id=${encodeURIComponent(slug)}`;
+        window.open(checkoutUrl, '_blank');
+    };
 
     return (
         <AnimatePresence>
@@ -78,19 +89,21 @@ export const PaywallModal = ({ isOpen, onClose, featureName }) => {
                         </li>
                     </ul>
 
-                    <button style={{
-                        width: '100%',
-                        padding: '1rem',
-                        background: '#ff1744',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontWeight: 'bold',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        fontFamily: 'Orbitron, sans-serif',
-                        letterSpacing: '1px'
-                    }}>
+                    <button
+                        onClick={handleUpgrade}
+                        style={{
+                            width: '100%',
+                            padding: '1rem',
+                            background: '#ff1744',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            fontSize: '1rem',
+                            cursor: 'pointer',
+                            fontFamily: 'Orbitron, sans-serif',
+                            letterSpacing: '1px'
+                        }}>
                         UPGRADE FOR €5/mo
                     </button>
 
