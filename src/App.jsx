@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { generateUniqueStyle } from './utils/uniqueness';
 import { TechRider } from './components/TechRider';
 import { PresskitView } from './components/PresskitView';
-import { savePresskit, checkProStatus } from './services/presskitService';
+import { savePresskit, checkProStatus, getUserPresskit } from './services/presskitService';
 import { Camera, FileText, User, Share2, Loader, Instagram, Youtube, Music, Twitter } from 'lucide-react';
 import { PricingCard } from './components/PricingCard';
 import { PaywallModal } from './components/PaywallModal';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { UserMenu } from './components/UserMenu';
 import { motion } from 'framer-motion';
 
 function getSlugFromHash() {
@@ -14,7 +16,16 @@ function getSlugFromHash() {
   return match ? match[1] : null;
 }
 
+function AppWrapper() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}
+
 function App() {
+  const { currentUser, loginWithGoogle } = useAuth();
   const [viewSlug, setViewSlug] = useState(getSlugFromHash());
 
   useEffect(() => {
@@ -45,10 +56,17 @@ const SocialInput = ({ icon: Icon, placeholder, value, onChange, color }) => (
 
 /* ── Creator Studio ── */
 function CreatorStudio() {
+  const { currentUser, loginWithGoogle } = useAuth();
   // Initialize state from localStorage if available (v2 keys)
   const [profilePic, setProfilePic] = useState(() => localStorage.getItem('ep_profilePic_v2') || null);
   const [bio, setBio] = useState(() => localStorage.getItem('ep_bio_v2') || '');
   const [hospitality, setHospitality] = useState(() => localStorage.getItem('ep_hospitality_v2') || '');
+
+  // Enhanced Tech Rider State
+  const [monitoring, setMonitoring] = useState(() => localStorage.getItem('ep_monitoring_v2') || '');
+  const [tableSpecs, setTableSpecs] = useState(() => localStorage.getItem('ep_tableSpecs_v2') || '');
+  const [otherTech, setOtherTech] = useState(() => localStorage.getItem('ep_otherTech_v2') || '');
+
   const [artistName, setArtistName] = useState(() => localStorage.getItem('ep_artistName_v2') || '');
   const [artistConcept, setArtistConcept] = useState(() => localStorage.getItem('ep_artistConcept_v2') || '');
 
@@ -101,6 +119,9 @@ function CreatorStudio() {
       localStorage.setItem('ep_artistConcept_v2', artistConcept);
       localStorage.setItem('ep_bio_v2', bio);
       localStorage.setItem('ep_hospitality_v2', hospitality);
+      localStorage.setItem('ep_monitoring_v2', monitoring);
+      localStorage.setItem('ep_tableSpecs_v2', tableSpecs);
+      localStorage.setItem('ep_otherTech_v2', otherTech);
       localStorage.setItem('ep_selectedGear_v2', JSON.stringify(selectedGear));
       localStorage.setItem('ep_cdjCount_v2', cdjCount);
       localStorage.setItem('ep_socials_v2', JSON.stringify(socials));
@@ -120,7 +141,7 @@ function CreatorStudio() {
     } catch (error) {
       console.warn('LocalStorage quota exceeded or error:', error);
     }
-  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic, isPro]);
+  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic, isPro, monitoring, tableSpecs, otherTech]);
 
   // Check Firestore isPro status when slug changes
   useEffect(() => {
@@ -132,6 +153,76 @@ function CreatorStudio() {
       }
     }).catch(err => console.warn('Pro status check failed:', err));
   }, [currentSlug]);
+
+  // Reset Editor Data
+  const resetEditor = () => {
+    // Clear State
+    setArtistName('');
+    setArtistConcept('');
+    setBio('');
+    setHospitality('');
+    setMonitoring('');
+    setTableSpecs('');
+    setOtherTech('');
+    setSelectedGear([]);
+    setCdjCount(2);
+    setProfilePic(null);
+    setSocials({ instagram: '', soundcloud: '', twitter: '', youtube: '' });
+    setMedia([]);
+    setIsPro(false);
+    setSavedLink(null);
+
+    // Clear LocalStorage
+    localStorage.removeItem('ep_artistName_v2');
+    localStorage.removeItem('ep_artistConcept_v2');
+    localStorage.removeItem('ep_bio_v2');
+    localStorage.removeItem('ep_hospitality_v2');
+    localStorage.removeItem('ep_monitoring_v2');
+    localStorage.removeItem('ep_tableSpecs_v2');
+    localStorage.removeItem('ep_otherTech_v2');
+    localStorage.removeItem('ep_selectedGear_v2');
+    localStorage.removeItem('ep_cdjCount_v2');
+    localStorage.removeItem('ep_socials_v2');
+    localStorage.removeItem('ep_media_v2');
+    localStorage.removeItem('ep_profilePic_v2');
+    localStorage.removeItem('ep_isPro_v2');
+  };
+
+  // Detect Logout
+  const [prevUser, setPrevUser] = useState(currentUser);
+  useEffect(() => {
+    // If we had a user, and now we don't -> It's a logout
+    if (prevUser && !currentUser) {
+      if (confirm('You have logged out. Would you like to clear the current presskit data?')) {
+        resetEditor();
+      }
+    }
+    setPrevUser(currentUser);
+  }, [currentUser, prevUser]);
+
+  // Sync Data on Login
+  useEffect(() => {
+    if (currentUser) {
+      getUserPresskit(currentUser.uid).then(data => {
+        if (data) {
+          console.log('Syncing data from Firestore for user:', currentUser.uid);
+          if (data.artistName) setArtistName(data.artistName);
+          if (data.artistConcept) setArtistConcept(data.artistConcept);
+          if (data.bio) setBio(data.bio);
+          if (data.hospitality) setHospitality(data.hospitality);
+          if (data.monitoring) setMonitoring(data.monitoring);
+          if (data.tableSpecs) setTableSpecs(data.tableSpecs);
+          if (data.otherTech) setOtherTech(data.otherTech);
+          if (data.selectedGear) setSelectedGear(data.selectedGear);
+          if (data.cdjCount) setCdjCount(data.cdjCount);
+          if (data.photoURL) setProfilePic(data.photoURL);
+          if (data.socials) setSocials(data.socials);
+          if (data.media) setMedia(data.media);
+          if (data.isPro) setIsPro(true);
+        }
+      });
+    }
+  }, [currentUser]);
 
   // Handle Stripe success redirect
   useEffect(() => {
@@ -296,21 +387,39 @@ function CreatorStudio() {
     setMedia(prev => [...prev, { type: 'youtube', url: videoId }]);
   };
 
-  const addSoundCloud = (url) => {
+  const addSoundCloud = (input) => {
     // Pro Feature: SoundCloud Embeds
     if (!checkProFeature('SoundCloud Embeds')) return;
 
     if (media.length >= 6) { return alert('Max 6 media items allowed'); }
-    if (!url) return;
+    if (!input) return;
 
-    // Validate SoundCloud URL
-    // e.g. https://soundcloud.com/artist/track
-    const regExp = /^https?:\/\/(soundcloud\.com|snd\.sc)\/(.*)$/;
-    const match = url.match(regExp);
-    if (match) {
-      setMedia(prev => [...prev, { type: 'soundcloud', url: url }]);
+    let finalUrl = '';
+
+    // Check for iframe embed code
+    if (input.includes('<iframe')) {
+      const srcMatch = input.match(/src="([^"]+)"/);
+      if (srcMatch && srcMatch[1]) {
+        const urlParamMatch = srcMatch[1].match(/url=([^&]+)/);
+        if (urlParamMatch && urlParamMatch[1]) {
+          finalUrl = decodeURIComponent(urlParamMatch[1]);
+        }
+      }
     } else {
-      return alert('Invalid SoundCloud URL. Must be a full link to a track.');
+      // Assume direct URL
+      finalUrl = input;
+    }
+
+    if (!finalUrl) {
+      return alert('Could not parse SoundCloud URL from input.');
+    }
+
+    // Validate extracted or direct URL
+    // It could be a permalink (soundcloud.com/...) or an API link (api.soundcloud.com/...)
+    if (finalUrl.includes('soundcloud.com') || finalUrl.includes('snd.sc')) {
+      setMedia(prev => [...prev, { type: 'soundcloud', url: finalUrl }]);
+    } else {
+      return alert('Invalid SoundCloud URL. Please paste a full link or the embed code.');
     }
   };
 
@@ -329,6 +438,17 @@ function CreatorStudio() {
   };
 
   const handleSave = async () => {
+    if (!currentUser) {
+      if (confirm("You must be logged in to save and manage your presskit. Sign in with Google now?")) {
+        try {
+          await loginWithGoogle();
+        } catch (e) {
+          console.error(e);
+          alert("Login failed: " + e.message);
+        }
+      }
+      return;
+    }
     if (!artistName.trim()) { alert('Please enter an artist name'); return; }
     setSaving(true); setSavedLink(null);
     const sanitizedSocials = {
@@ -349,7 +469,10 @@ function CreatorStudio() {
     }
     try {
       const savePromise = savePresskit({
-        artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
+        artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media,
+        monitoring, tableSpecs, otherTech,
+        ownerId: currentUser.uid,
+        ownerEmail: currentUser.email
       });
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Connection timed out.')), 90000);
@@ -379,6 +502,9 @@ function CreatorStudio() {
         <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
           Create your official press kit
         </p>
+        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+          <UserMenu />
+        </div>
       </header>
 
       <main className="container">
@@ -391,12 +517,7 @@ function CreatorStudio() {
           slug={currentSlug}
         />
 
-        {/* Pricing Section (Visible if not Pro) */}
-        {!isPro && (
-          <div style={{ marginBottom: '3rem' }}>
-            <PricingCard isPro={isPro} slug={currentSlug} />
-          </div>
-        )}
+
 
         <div className="grid grid-2">
           {/* ── LEFT: Editor ── */}
@@ -422,10 +543,16 @@ function CreatorStudio() {
               }}>
                 {!profilePic && <Camera size={32} color="#555" />}
               </div>
-              <button onClick={() => document.getElementById('photo-input').click()}
-                style={{ fontSize: '0.7rem', padding: '0.5rem 1.2rem' }}>
-                Upload Photo
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                <button onClick={() => document.getElementById('photo-input').click()}
+                  style={{ fontSize: '0.7rem', padding: '0.5rem 1.2rem' }}>
+                  Upload Photo
+                </button>
+                <button onClick={() => { if (confirm('Clear all data?')) resetEditor(); }}
+                  style={{ fontSize: '0.7rem', padding: '0.5rem 1.2rem', background: 'rgba(255,50,50,0.2)', border: '1px solid rgba(255,50,50,0.3)', color: '#ffaaaa' }}>
+                  Clear Data
+                </button>
+              </div>
               <input id="photo-input" type="file" hidden onChange={handlePhotoUpload} accept="image/*" />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
@@ -438,6 +565,24 @@ function CreatorStudio() {
               <textarea rows="3" placeholder="What do you need backstage?" value={hospitality}
                 onChange={(e) => setHospitality(e.target.value)} />
             </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label>Monitoring Requirements</label>
+              <textarea rows="2" placeholder="e.g. 2 x L-Acoustics 115XT, controllable from booth" value={monitoring}
+                onChange={(e) => setMonitoring(e.target.value)} />
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label>Stage / Booth Specs</label>
+              <textarea rows="2" placeholder="e.g. Table Height 100cm, Vibration-free, Min width 2m" value={tableSpecs}
+                onChange={(e) => setTableSpecs(e.target.value)} />
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label>Other Technical Req.</label>
+              <textarea rows="2" placeholder="Power, Lighting, Network, Security..." value={otherTech}
+                onChange={(e) => setOtherTech(e.target.value)} />
+            </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ marginBottom: '0.7rem' }}>Social Links</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -448,32 +593,54 @@ function CreatorStudio() {
               </div>
             </div>
             <div>
-              <label style={{ marginBottom: '0.7rem' }}>Media Gallery (Max 6 items)</label>
+              <label style={{ marginBottom: '0.7rem' }}>Releases / Podcasts</label>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
                 <input
                   type="text"
-                  placeholder="Paste YouTube or SoundCloud Link"
-                  id="media-input"
+                  placeholder="Paste YouTube Link or SoundCloud Embed Code"
+                  id="release-input"
                   style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}
                 />
                 <button
                   onClick={() => {
-                    const input = document.getElementById('media-input');
+                    const input = document.getElementById('release-input');
                     const val = input.value;
                     if (val.includes('youtu')) {
                       addYoutube(val);
-                    } else if (val.includes('soundcloud.com')) {
+                    } else if (val.includes('soundcloud.com') || val.includes('src="')) {
                       addSoundCloud(val);
                     } else {
-                      alert('Please paste a valid YouTube or SoundCloud link.');
+                      alert('Please paste a valid YouTube or SoundCloud link/embed.');
                     }
                     input.value = '';
                   }}
                   style={{ padding: '0.5rem', fontSize: '0.8rem' }}
                 >
-                  Add Media
+                  Add Release
                 </button>
               </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                {media.map((item, index) => {
+                  if (item.type === 'image') return null;
+                  return (
+                    <div key={index} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '0.5rem', background: '#0d0d0d', border: '1px solid #333', borderRadius: '4px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                        {item.type === 'youtube' && <Youtube size={16} color="#FF0000" />}
+                        {item.type === 'soundcloud' && <Music size={16} color="#ff5500" />}
+                        <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+                          {item.url.substring(0, 40)}...
+                        </span>
+                      </div>
+                      <button onClick={() => removeMedia(index)} style={{ color: '#fff', background: 'transparent', padding: '2px 6px', fontSize: '0.8rem' }}>×</button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <label style={{ marginBottom: '0.7rem' }}>Gallery</label>
               <div style={{ marginBottom: '0.8rem' }}>
                 <button onClick={() => document.getElementById('media-upload').click()}
                   style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px dashed #444' }}>
@@ -482,33 +649,26 @@ function CreatorStudio() {
                 <input id="media-upload" type="file" hidden onChange={handleMediaUpload} accept="image/*" />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                {media.map((item, index) => (
-                  <div key={index} style={{ position: 'relative', aspectRatio: '16/9', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
-                    {item.type === 'image' && (
+                {media.map((item, index) => {
+                  if (item.type !== 'image') return null;
+                  return (
+                    <div key={index} style={{ position: 'relative', aspectRatio: '16/9', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
                       <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    )}
-                    {item.type === 'youtube' && (
-                      <img src={`https://img.youtube.com/vi/${item.url}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    )}
-                    {item.type === 'soundcloud' && (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(45deg, #ff5500, #ff8800)' }}>
-                        <Music size={48} color="white" />
-                      </div>
-                    )}
-                    <button
-                      onClick={() => removeMedia(index)}
-                      style={{
-                        position: 'absolute', top: 2, right: 2,
-                        background: 'rgba(0,0,0,0.8)', color: '#fff',
-                        border: 'none', borderRadius: '50%',
-                        width: '20px', height: '20px',
-                        fontSize: '0.8rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                      <button
+                        onClick={() => removeMedia(index)}
+                        style={{
+                          position: 'absolute', top: 2, right: 2,
+                          background: 'rgba(0,0,0,0.8)', color: '#fff',
+                          border: 'none', borderRadius: '50%',
+                          width: '20px', height: '20px',
+                          fontSize: '0.8rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -583,6 +743,29 @@ function CreatorStudio() {
                 cdjCount={cdjCount}
                 onCdjCountChange={setCdjCount}
               />
+
+              {(monitoring || tableSpecs || otherTech) && (
+                <div style={{ marginTop: '1.5rem', display: 'grid', gap: '1.2rem' }}>
+                  {monitoring && (
+                    <div>
+                      <h4 style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.1em' }}>Monitoring</h4>
+                      <p style={{ color: '#ccc', lineHeight: '1.5', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{monitoring}</p>
+                    </div>
+                  )}
+                  {tableSpecs && (
+                    <div>
+                      <h4 style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.1em' }}>Stage / Booth</h4>
+                      <p style={{ color: '#ccc', lineHeight: '1.5', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{tableSpecs}</p>
+                    </div>
+                  )}
+                  {otherTech && (
+                    <div>
+                      <h4 style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.1em' }}>Other Specs</h4>
+                      <p style={{ color: '#ccc', lineHeight: '1.5', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{otherTech}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {hospitality && (
@@ -641,10 +824,18 @@ function CreatorStudio() {
       </main>
 
       <footer style={{ textAlign: 'center', padding: '2rem', color: '#333', fontSize: '0.75rem', borderTop: '1px solid var(--border)', marginTop: '2rem' }}>
+
+        {/* Pricing Section (Moved to bottom) */}
+        {!isPro && (
+          <div style={{ marginBottom: '3rem' }}>
+            <PricingCard isPro={isPro} slug={currentSlug} />
+          </div>
+        )}
+
         <p>© 2026 EasyPresskit — Modern Artist Solutions</p>
       </footer>
     </div>
   );
 }
 
-export default App;
+export default AppWrapper;

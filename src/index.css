@@ -120,7 +120,8 @@ textarea:focus {
 
 input::placeholder,
 textarea::placeholder {
-  color: #444;
+  color: #888;
+  opacity: 0.7;
 }
 
 /* ── Buttons ── */
@@ -180,6 +181,7 @@ label {
   color: var(--text-main);
   margin-bottom: 0.4rem;
 }
+
 /* ── Pricing ── */
 .pricing-container {
   display: grid;
@@ -270,7 +272,8 @@ label {
 }
 
 .pricing-features li svg {
-  min-width: 14px; /* Ensure icon doesn't shrink */
+  min-width: 14px;
+  /* Ensure icon doesn't shrink */
 }
 
 .pricing-features li.dim {
@@ -314,9 +317,9 @@ label {
     gap: 1.5rem;
     border-radius: 16px;
   }
-  
+
   .pricing-card.pro {
-     box-shadow: 0 0 30px rgba(255, 23, 68, 0.15);
+    box-shadow: 0 0 30px rgba(255, 23, 68, 0.15);
   }
 
   .pricing-tag {
@@ -351,7 +354,7 @@ label {
     gap: 0.8rem;
     font-size: 1rem;
   }
-  
+
   .pricing-features li svg {
     min-width: auto;
   }
@@ -360,4 +363,21 @@ label {
     padding: 1rem;
     font-size: 1rem;
   }
+}
+/* ── Neon Button ── */
+.neon-button {
+  --neon-color: var(--accent);
+  background: transparent;
+  color: var(--neon-color);
+  border: 1px solid var(--neon-color);
+  box-shadow: 0 0 5px var(--neon-color), inset 0 0 5px var(--neon-color);
+  text-shadow: 0 0 5px var(--neon-color);
+  transition: all 0.3s ease;
+}
+
+.neon-button:hover {
+  background: var(--neon-color);
+  color: #000;
+  box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color);
+  text-shadow: none;
 }

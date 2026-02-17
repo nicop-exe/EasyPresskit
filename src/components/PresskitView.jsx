@@ -5,6 +5,12 @@ import { DJBoothPreview } from './DJBooth3D';
 
 const ACCENT = '#ff1744';
 
+const SoundCloudLogo = ({ size = 20, color = "currentColor" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
+        <path d="M19.5 7.5c-2.4 0-4.4 1.7-4.9 4H14v8.5h5.5c2.5 0 4.5-2 4.5-4.5s-2-4.5-4.5-4.5zM8.9 9.3v8l1.7.5V9.1l-1.7.2zm-2.5.5v7l1.7.5V9.4l-1.7.4zm-2.6.8v5.5l1.7.5V10l-1.7.6zM2 11.6v2.5l1.8.5v-3L2 11.6z" />
+    </svg>
+);
+
 /* ── Social button ── */
 const SocialButton = ({ href, icon: Icon, label, color }) => {
     if (!href) return null;
@@ -146,6 +152,15 @@ export const PresskitView = ({ slug }) => {
                                         {data.artistConcept}
                                     </p>
                                 )}
+                                {/* Social Links (Hero) */}
+                                {hasSocials && (
+                                    <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+                                        <SocialButton href={verifyUrl(socials.instagram)} icon={Instagram} label="Instagram" color="#E1306C" />
+                                        <SocialButton href={verifyUrl(socials.soundcloud)} icon={SoundCloudLogo} label="SoundCloud" color="#ff5500" />
+                                        <SocialButton href={verifyUrl(socials.twitter)} icon={Twitter} label="X / Twitter" color="#ffffff" />
+                                        <SocialButton href={verifyUrl(socials.youtube)} icon={Youtube} label="YouTube" color="#FF0000" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -202,11 +217,59 @@ export const PresskitView = ({ slug }) => {
                         </div>
 
                         {/* 3D Booth Preview in Public View */}
-                        <div style={{ marginTop: '1.5rem' }}>
+                        <div style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
                             <DJBoothPreview
                                 selectedEquipmentNames={data.selectedGear || []}
                                 cdjCount={data.cdjCount || 2}
                             />
+                        </div>
+
+                        {/* Additional Tech Specs */}
+                        <div style={{ display: 'grid', gap: '1.5rem' }}>
+                            {data.monitoring && (
+                                <div>
+                                    <h3 style={{
+                                        color: '#888', fontSize: '0.8rem',
+                                        fontFamily: 'Orbitron, sans-serif', letterSpacing: '0.1em',
+                                        marginBottom: '0.5rem', textTransform: 'uppercase'
+                                    }}>
+                                        Monitoring
+                                    </h3>
+                                    <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                        {data.monitoring}
+                                    </p>
+                                </div>
+                            )}
+
+                            {data.tableSpecs && (
+                                <div>
+                                    <h3 style={{
+                                        color: '#888', fontSize: '0.8rem',
+                                        fontFamily: 'Orbitron, sans-serif', letterSpacing: '0.1em',
+                                        marginBottom: '0.5rem', textTransform: 'uppercase'
+                                    }}>
+                                        Stage / Booth
+                                    </h3>
+                                    <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                        {data.tableSpecs}
+                                    </p>
+                                </div>
+                            )}
+
+                            {data.otherTech && (
+                                <div>
+                                    <h3 style={{
+                                        color: '#888', fontSize: '0.8rem',
+                                        fontFamily: 'Orbitron, sans-serif', letterSpacing: '0.1em',
+                                        marginBottom: '0.5rem', textTransform: 'uppercase'
+                                    }}>
+                                        Other Requirements
+                                    </h3>
+                                    <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                        {data.otherTech}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </section>
                 )}
@@ -228,8 +291,8 @@ export const PresskitView = ({ slug }) => {
                     </section>
                 )}
 
-                {/* Social Links */}
-                {hasSocials && (
+                {/* Social Links (Removed from main content) */}
+                {/* {hasSocials && (
                     <section style={{ marginBottom: '3rem' }}>
                         <h2 style={{
                             fontFamily: 'Orbitron, sans-serif',
@@ -248,7 +311,7 @@ export const PresskitView = ({ slug }) => {
                             <SocialButton href={verifyUrl(socials.youtube)} icon={Youtube} label="YouTube" color="#FF0000" />
                         </div>
                     </section>
-                )}
+                )} */}
 
                 {/* Media Gallery */}
                 {data.media && data.media.length > 0 && (
