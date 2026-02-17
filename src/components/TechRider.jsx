@@ -52,6 +52,8 @@ const EquipmentCard = ({ item, isSelected, onToggle, count, onCountChange }) => 
                             <CDJGLTFModel hovered={hovered} />
                         ) : item.id === 'a9' ? (
                             <DJMAGLTFModel hovered={hovered} />
+                        ) : item.id === 'v10' ? (
+                            <DJMV10GLTFModel hovered={hovered} />
                         ) : (
                             <GenericMixerModel hovered={hovered} />
                         )}
