@@ -29,15 +29,15 @@
     "runtime": "nodejs20"
   },
   "firestore": {
+    "database": "(default)",
+    "location": "nam5",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
   "auth": {
     "providers": {
-      "googleSignIn": {
-        "oAuthBrandDisplayName": "EasyPresskit",
-        "supportEmail": "nicop.exemusic@gmail.com"
-      }
+      "anonymous": true,
+      "emailPassword": false
     }
   }
 }

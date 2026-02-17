@@ -163,8 +163,12 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
 
     const leftCdjs = Math.ceil(cdjCount / 2);
     const rightCdjs = Math.floor(cdjCount / 2);
-    // V10 is wider, so we push players further apart
-    const spacing = mixer?.id === 'v10' ? 3.8 : 3.2;
+
+    // Dynamic spacing logic:
+    // mixerOffset: Distance from center to the first CDJ (depends on mixer width)
+    // playerSpacing: Distance between adjacent CDJs (constant)
+    const mixerOffset = mixer?.id === 'v10' ? 3.8 : 3.2;
+    const playerSpacing = 3.2;
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
 
@@ -209,9 +213,12 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
 
                     <Suspense fallback={<LoadingFallback />}>
                         {/* Render LEFT CDJs */}
-                        {hasPlayer && Array.from({ length: leftCdjs }).map((_, i) => (
-                            <CDJBoothUnit key={`l-${i}`} position={[-(leftCdjs - i) * spacing, 0, 0]} />
-                        ))}
+                        {hasPlayer && Array.from({ length: leftCdjs }).map((_, i) => {
+                            // i=0 is far left, i=length-1 is closest to mixer
+                            const distanceIndex = leftCdjs - 1 - i;
+                            const xPos = -(mixerOffset + (distanceIndex * playerSpacing));
+                            return <CDJBoothUnit key={`l-${i}`} position={[xPos, 0, 0]} />;
+                        })}
 
                         {/* Render MIXER */}
                         {hasMixer && (
@@ -225,9 +232,11 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
                         )}
 
                         {/* Render RIGHT CDJs */}
-                        {hasPlayer && Array.from({ length: rightCdjs }).map((_, i) => (
-                            <CDJBoothUnit key={`r-${i}`} position={[(i + 1) * spacing, 0, 0]} />
-                        ))}
+                        {hasPlayer && Array.from({ length: rightCdjs }).map((_, i) => {
+                            // i=0 is closest to mixer
+                            const xPos = mixerOffset + (i * playerSpacing);
+                            return <CDJBoothUnit key={`r-${i}`} position={[xPos, 0, 0]} />;
+                        })}
                     </Suspense>
                 </Canvas>
             </div>
