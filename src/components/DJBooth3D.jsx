@@ -58,7 +58,7 @@ export const DJMV10GLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) =>
     return (
         <group ref={groupRef} position={position} scale={scale}>
             <Center top>
-                <primitive object={clonedScene} scale={1} />
+                <primitive object={clonedScene} scale={7} />
             </Center>
         </group>
     );
@@ -127,7 +127,7 @@ const DJMV10BoothUnit = ({ position }) => {
     return (
         <group position={position}>
             <Center top>
-                <primitive object={clonedScene} scale={1} />
+                <primitive object={clonedScene} scale={7} />
             </Center>
         </group>
     );
