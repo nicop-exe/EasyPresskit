@@ -164,7 +164,7 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
     const leftCdjs = Math.ceil(cdjCount / 2);
     const rightCdjs = Math.floor(cdjCount / 2);
     // V10 is wider, so we push players further apart
-    const spacing = mixer?.id === 'v10' ? 4.5 : 3.2;
+    const spacing = mixer?.id === 'v10' ? 3.8 : 3.2;
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
 
