@@ -4,6 +4,7 @@ import {
     LoadingFallback,
     CDJGLTFModel,
     DJMAGLTFModel,
+    DJMV10GLTFModel,
     GenericMixerModel,
     DJBoothPreview
 } from './DJBooth3D';
