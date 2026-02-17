@@ -1,90 +1,97 @@
-const functions = require('firebase-functions');
+const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
-const stripe = require('stripe')(functions.config().stripe.secret);
 
 admin.initializeApp();
 
-exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    const endpointSecret = functions.config().stripe.webhook_secret;
+const stripeSecretKey = defineSecret('STRIPE_SECRET');
+const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 
-    let event;
+exports.stripeWebhook = onRequest(
+    { secrets: [stripeSecretKey, stripeWebhookSecret] },
+    async (req, res) => {
+        const stripe = require('stripe')(stripeSecretKey.value());
 
-    try {
-        event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
-    } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+        const sig = req.headers['stripe-signature'];
+        let event;
 
-    const presskitsRef = admin.firestore().collection('presskits');
+        try {
+            event = stripe.webhooks.constructEvent(
+                req.rawBody, sig, stripeWebhookSecret.value()
+            );
+        } catch (err) {
+            console.error(`Webhook Error: ${err.message}`);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
 
-    // Handle checkout completion → activate Pro
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object;
-        const artistSlug = session.client_reference_id;
+        const presskitsRef = admin.firestore().collection('presskits');
 
-        if (artistSlug) {
-            try {
-                const snapshot = await presskitsRef.where('slug', '==', artistSlug).limit(1).get();
+        // Handle checkout completion → activate Pro
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            const artistSlug = session.client_reference_id;
 
-                if (!snapshot.empty) {
-                    const doc = snapshot.docs[0];
-                    await doc.ref.update({
-                        isPro: true,
-                        stripeCustomerId: session.customer || null,
-                        stripeSubscriptionId: session.subscription || null,
-                        proActivatedAt: new Date().toISOString(),
-                    });
-                    console.log(`Successfully upgraded artist ${artistSlug} to Pro.`);
-                } else {
-                    // Try direct doc ID lookup
-                    const directDoc = await presskitsRef.doc(artistSlug).get();
-                    if (directDoc.exists) {
-                        await directDoc.ref.update({
+            if (artistSlug) {
+                try {
+                    const snapshot = await presskitsRef
+                        .where('slug', '==', artistSlug).limit(1).get();
+
+                    if (!snapshot.empty) {
+                        const doc = snapshot.docs[0];
+                        await doc.ref.update({
                             isPro: true,
                             stripeCustomerId: session.customer || null,
                             stripeSubscriptionId: session.subscription || null,
                             proActivatedAt: new Date().toISOString(),
                         });
-                        console.log(`Upgraded artist ${artistSlug} via direct lookup.`);
+                        console.log(`Upgraded artist ${artistSlug} to Pro.`);
                     } else {
-                        console.error(`No presskit found for slug: ${artistSlug}`);
+                        const directDoc = await presskitsRef.doc(artistSlug).get();
+                        if (directDoc.exists) {
+                            await directDoc.ref.update({
+                                isPro: true,
+                                stripeCustomerId: session.customer || null,
+                                stripeSubscriptionId: session.subscription || null,
+                                proActivatedAt: new Date().toISOString(),
+                            });
+                            console.log(`Upgraded artist ${artistSlug} via direct lookup.`);
+                        } else {
+                            console.error(`No presskit found for slug: ${artistSlug}`);
+                        }
                     }
+                } catch (error) {
+                    console.error('Error updating Firestore:', error);
                 }
-            } catch (error) {
-                console.error('Error updating Firestore:', error);
             }
         }
-    }
 
-    // Handle subscription cancellation → deactivate Pro
-    if (event.type === 'customer.subscription.deleted') {
-        const subscription = event.data.object;
-        const customerId = subscription.customer;
+        // Handle subscription cancellation → deactivate Pro
+        if (event.type === 'customer.subscription.deleted') {
+            const subscription = event.data.object;
+            const customerId = subscription.customer;
 
-        if (customerId) {
-            try {
-                const snapshot = await presskitsRef
-                    .where('stripeCustomerId', '==', customerId)
-                    .limit(1)
-                    .get();
+            if (customerId) {
+                try {
+                    const snapshot = await presskitsRef
+                        .where('stripeCustomerId', '==', customerId)
+                        .limit(1).get();
 
-                if (!snapshot.empty) {
-                    const doc = snapshot.docs[0];
-                    await doc.ref.update({
-                        isPro: false,
-                        proCancelledAt: new Date().toISOString(),
-                    });
-                    console.log(`Deactivated Pro for customer ${customerId}.`);
-                } else {
-                    console.warn(`No presskit found for customer: ${customerId}`);
+                    if (!snapshot.empty) {
+                        const doc = snapshot.docs[0];
+                        await doc.ref.update({
+                            isPro: false,
+                            proCancelledAt: new Date().toISOString(),
+                        });
+                        console.log(`Deactivated Pro for customer ${customerId}.`);
+                    } else {
+                        console.warn(`No presskit found for customer: ${customerId}`);
+                    }
+                } catch (error) {
+                    console.error('Error deactivating Pro:', error);
                 }
-            } catch (error) {
-                console.error('Error deactivating Pro:', error);
             }
         }
-    }
 
-    res.json({ received: true });
-});
+        res.json({ received: true });
+    }
+);

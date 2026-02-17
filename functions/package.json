@@ -2,7 +2,7 @@
     "name": "easypresskit-functions",
     "description": "Cloud Functions for EasyPresskit (Stripe Webhooks)",
     "engines": {
-        "node": "18"
+        "node": "20"
     },
     "main": "stripeWebhook.js",
     "dependencies": {
