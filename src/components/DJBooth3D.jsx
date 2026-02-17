@@ -46,6 +46,22 @@ export const DJMAGLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) => {
     );
 };
 
+export const DJMV10GLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) => {
+    const groupRef = useRef();
+    const { scene } = useGLTF('./3D/DJM-V10.glb');
+    const clonedScene = useMemo(() => scene.clone(true), [scene]);
+
+    useFrame((_, delta) => {
+        if (groupRef.current) groupRef.current.rotation.y += delta * (hovered ? 0.5 : 0.2);
+    });
+
+    return (
+        <group ref={groupRef} position={position} scale={scale}>
+            <primitive object={clonedScene} scale={1} />
+        </group>
+    );
+};
+
 export const GenericMixerModel = ({ hovered }) => {
     const groupRef = useRef();
     useFrame((_, delta) => {
@@ -103,6 +119,16 @@ const DJMABoothUnit = ({ position }) => {
     );
 };
 
+const DJMV10BoothUnit = ({ position }) => {
+    const { scene } = useGLTF('./3D/DJM-V10.glb');
+    const clonedScene = useMemo(() => scene.clone(true), [scene]);
+    return (
+        <group position={position}>
+            <primitive object={clonedScene} scale={1} />
+        </group>
+    );
+};
+
 const GenericMixerBooth = ({ position }) => (
     <group position={position} scale={0.5}>
         <RoundedBox args={[1.3, 0.2, 2.0]} radius={0.03} smoothness={4}>
@@ -114,6 +140,7 @@ const GenericMixerBooth = ({ position }) => (
 /* ──────── Preload GLTF ──────── */
 useGLTF.preload('./3D/CDJ3000.glb');
 useGLTF.preload('./3D/DJMA9.glb');
+useGLTF.preload('./3D/DJM-V10.glb');
 
 export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
     const equipmentData = [
@@ -185,6 +212,8 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
                         {hasMixer && (
                             mixer?.id === 'a9' ? (
                                 <DJMABoothUnit position={[0, 0, 0]} />
+                            ) : mixer?.id === 'v10' ? (
+                                <DJMV10BoothUnit position={[0, 0, 0]} />
                             ) : (
                                 <GenericMixerBooth position={[0, 0, 0]} />
                             )
