@@ -127,7 +127,7 @@ const DJMV10BoothUnit = ({ position }) => {
     return (
         <group position={position}>
             <Center top>
-                <primitive object={clonedScene} scale={7} />
+                <primitive object={clonedScene} scale={10} />
             </Center>
         </group>
     );
