@@ -6,8 +6,8 @@ import { DJBoothPreview } from './DJBooth3D';
 const ACCENT = '#ff1744';
 
 const SoundCloudLogo = ({ size = 20, color = "currentColor" }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
-        <path d="M19.5 7.5c-2.4 0-4.4 1.7-4.9 4H14v8.5h5.5c2.5 0 4.5-2 4.5-4.5s-2-4.5-4.5-4.5zM8.9 9.3v8l1.7.5V9.1l-1.7.2zm-2.5.5v7l1.7.5V9.4l-1.7.4zm-2.6.8v5.5l1.7.5V10l-1.7.6zM2 11.6v2.5l1.8.5v-3L2 11.6z" />
+    <svg width={size} height={size} viewBox="0 0 640 512" fill={color} xmlns="http://www.w3.org/2000/svg">
+        <path d="M111.4 295.9c-3.5 19.2-17.4 108.7-21.5 134-.3 1.8-1 2.5-3 2.5H12c-2.1 0-2.9-.8-3-2.3C2.5 396.4-11.2 258.1 11 154.5c23.2-107.9 123.4-124 136.6-121.7 1.8 0 3.2 1.7 2.6 3.5C139.6 78 123 194 122 233.1c0 2 1.5 3.5 3.5 3.4 21.6-1.4 46.2-7.5 68.4-20 2-1 4.2 1 3.5 3-10.4 43.1-23.7 93.9-30 115.1-.4 1.4-1.6 2.4-3.1 2.4-9.3.2-28.7 1.4-52.9 38.9zM496 224c-79.6 0-144 64.4-144 144s64.4 144 144 144 144-64.4 144-144-64.4-144-144-144zm0 224c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z" />
     </svg>
 );
 
@@ -313,8 +313,8 @@ export const PresskitView = ({ slug }) => {
                     </section>
                 )} */}
 
-                {/* Media Gallery */}
-                {data.media && data.media.length > 0 && (
+                {/* Releases / Podcasts */}
+                {data.media && data.media.filter(m => m.type === 'youtube' || m.type === 'soundcloud').length > 0 && (
                     <section style={{ marginBottom: '3rem' }}>
                         <h2 style={{
                             fontFamily: 'Orbitron, sans-serif',
@@ -324,10 +324,10 @@ export const PresskitView = ({ slug }) => {
                             borderBottom: `2px solid ${ACCENT}`,
                             display: 'inline-block',
                         }}>
-                            Media
+                            Releases / Podcasts
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-                            {data.media.map((item, index) => (
+                            {data.media.filter(m => m.type === 'youtube' || m.type === 'soundcloud').map((item, index) => (
                                 <div key={index} style={{
                                     borderRadius: '8px', overflow: 'hidden',
                                     border: `1px solid ${ACCENT}30`,
@@ -343,7 +343,7 @@ export const PresskitView = ({ slug }) => {
                                             allowFullScreen
                                             style={{ display: 'block' }}
                                         ></iframe>
-                                    ) : item.type === 'soundcloud' ? (
+                                    ) : (
                                         <iframe
                                             width="100%"
                                             height="100%"
@@ -351,13 +351,38 @@ export const PresskitView = ({ slug }) => {
                                             frameBorder="no"
                                             src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(item.url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`}
                                         ></iframe>
-                                    ) : (
-                                        <img
-                                            src={item.url}
-                                            alt="Gallery"
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
                                     )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Media Gallery */}
+                {data.media && data.media.filter(m => m.type === 'image' || !m.type).length > 0 && (
+                    <section style={{ marginBottom: '3rem' }}>
+                        <h2 style={{
+                            fontFamily: 'Orbitron, sans-serif',
+                            fontSize: '0.7rem', letterSpacing: '0.25em',
+                            color: ACCENT, marginBottom: '1rem',
+                            paddingBottom: '0.5rem',
+                            borderBottom: `2px solid ${ACCENT}`,
+                            display: 'inline-block',
+                        }}>
+                            Gallery
+                        </h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                            {data.media.filter(m => m.type === 'image' || !m.type).map((item, index) => (
+                                <div key={index} style={{
+                                    borderRadius: '8px', overflow: 'hidden',
+                                    border: `1px solid ${ACCENT}30`,
+                                    background: '#0d0d0d', aspectRatio: '16/9'
+                                }}>
+                                    <img
+                                        src={item.url}
+                                        alt="Gallery"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                 </div>
                             ))}
                         </div>
