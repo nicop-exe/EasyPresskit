@@ -1,6 +1,6 @@
 import React, { useRef, Suspense, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, RoundedBox } from '@react-three/drei';
+import { useGLTF, RoundedBox, Center } from '@react-three/drei';
 import * as THREE from 'three';
 
 /* ──────── Loading spinner ──────── */
@@ -57,7 +57,9 @@ export const DJMV10GLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) =>
 
     return (
         <group ref={groupRef} position={position} scale={scale}>
-            <primitive object={clonedScene} scale={10} />
+            <Center top>
+                <primitive object={clonedScene} scale={0.01} />
+            </Center>
         </group>
     );
 };
@@ -124,7 +126,9 @@ const DJMV10BoothUnit = ({ position }) => {
     const clonedScene = useMemo(() => scene.clone(true), [scene]);
     return (
         <group position={position}>
-            <primitive object={clonedScene} scale={10} />
+            <Center top>
+                <primitive object={clonedScene} scale={0.01} />
+            </Center>
         </group>
     );
 };
