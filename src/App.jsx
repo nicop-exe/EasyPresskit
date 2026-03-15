@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { generateUniqueStyle } from './utils/uniqueness';
 import { TechRider } from './components/TechRider';
 import { PresskitView } from './components/PresskitView';
-import { savePresskit, checkProStatus, getUserPresskit } from './services/presskitService';
-import { Camera, FileText, User, Share2, Loader, Instagram, Youtube, Music, Twitter } from 'lucide-react';
+import { savePresskit, checkProStatus, getUserPresskit, uploadBackgroundImage } from './services/presskitService';
+import { Camera, FileText, User, Share2, Loader, Instagram, Youtube, Music, Twitter, Activity } from 'lucide-react';
 import { PricingCard } from './components/PricingCard';
 import { PaywallModal } from './components/PaywallModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -38,7 +38,19 @@ function App() {
   return <CreatorStudio />;
 }
 
-/* ── Social input row ── */
+/* ── SoundCloud Logo ── */
+const SoundCloudLogo = ({ size = 20, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
+    <path d="M23.999 14.165c-.052 1.796-1.612 3.169-3.4 3.169h-8.18a.68.68 0 0 1-.675-.683V7.862a.747.747 0 0 1 .452-.724s.75-.513 2.333-.513a5.364 5.364 0 0 1 2.763.755 5.433 5.433 0 0 1 2.57 3.54c.282-.08.574-.121.868-.12.884 0 1.73.358 2.347.992s.948 1.49.922 2.373ZM10.721 8.421c.247 2.98.427 5.697 0 8.672a.264.264 0 0 1-.53 0c-.395-2.946-.22-5.718 0-8.672a.264.264 0 0 1 .53 0ZM9.072 9.448c.285 2.659.37 4.986-.006 7.655a.277.277 0 0 1-.55 0c-.331-2.63-.256-5.02 0-7.655a.277.277 0 0 1 .556 0Zm-1.663-.257c.27 2.726.39 5.171 0 7.904a.266.266 0 0 1-.532 0c-.38-2.69-.257-5.21 0-7.904a.266.266 0 0 1 .532 0Zm-1.647.77a26.108 26.108 0 0 1-.008 7.147.272.272 0 0 1-.542 0 27.955 27.955 0 0 1 0-7.147.275.275 0 0 1 .55 0Zm-1.67 1.769c.421 1.865.228 3.5-.029 5.388a.257.257 0 0 1-.514 0c-.21-1.858-.398-3.549 0-5.389a.272.272 0 0 1 .543 0Zm-1.655-.273c.388 1.897.26 3.508-.01 5.412-.026.28-.514.283-.54 0-.244-1.878-.347-3.54-.01-5.412a.283.283 0 0 1 .56 0Zm-1.668.911c.4 1.268.257 2.292-.026 3.572a.257.257 0 0 1-.514 0c-.241-1.262-.354-2.312-.023-3.572a.283.283 0 0 1 .563 0Z" />
+  </svg>
+);
+
+const XLogo = ({ size = 20, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+  </svg>
+);
+
 const SocialInput = ({ icon: Icon, placeholder, value, onChange, color }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
     <div style={{
@@ -70,8 +82,17 @@ function CreatorStudio() {
   const [artistName, setArtistName] = useState(() => localStorage.getItem('ep_artistName_v2') || '');
   const [artistConcept, setArtistConcept] = useState(() => localStorage.getItem('ep_artistConcept_v2') || '');
 
+  // Stats & Reach
+  const [stats, setStats] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ep_stats_v2');
+      return saved ? JSON.parse(saved) : [{ label: '', value: '' }, { label: '', value: '' }, { label: '', value: '' }];
+    } catch (e) { return [{ label: '', value: '' }, { label: '', value: '' }, { label: '', value: '' }]; }
+  });
+  const [supportedBy, setSupportedBy] = useState(() => localStorage.getItem('ep_supportedBy_v2') || '');
+
   // Pro State
-  const [isPro, setIsPro] = useState(false);
+  const [isPro, setIsPro] = useState(() => localStorage.getItem('ep_isPro_v2') === 'true');
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState('');
 
@@ -107,17 +128,37 @@ function CreatorStudio() {
     } catch (e) { return []; }
   });
 
+  const [techRiderPdf, setTechRiderPdf] = useState(() => localStorage.getItem('ep_techRiderPdf_v2') || null);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const [savedLink, setSavedLink] = useState(null);
 
-  const ACCENT = '#ff1744';
+  // Theme State
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ep_theme_v2');
+      const parsed = saved ? JSON.parse(saved) : {};
+      return {
+        accentColor: parsed.accentColor || '#ff1744',
+        backgroundImage: parsed.backgroundImage || null,
+        templateId: parsed.templateId || 'neon'
+      };
+    } catch (e) { return { accentColor: '#ff1744', backgroundImage: null, templateId: 'neon' }; }
+  });
+
+  // Use dynamic accent for local preview
+  const ACCENT = theme.accentColor || '#ff1744';
 
   // Persistence Effect (v2 keys)
   useEffect(() => {
     try {
+      localStorage.setItem('ep_theme_v2', JSON.stringify(theme));
       localStorage.setItem('ep_artistName_v2', artistName);
       localStorage.setItem('ep_artistConcept_v2', artistConcept);
       localStorage.setItem('ep_bio_v2', bio);
+      localStorage.setItem('ep_stats_v2', JSON.stringify(stats));
+      localStorage.setItem('ep_supportedBy_v2', supportedBy);
       localStorage.setItem('ep_hospitality_v2', hospitality);
       localStorage.setItem('ep_monitoring_v2', monitoring);
       localStorage.setItem('ep_tableSpecs_v2', tableSpecs);
@@ -126,6 +167,12 @@ function CreatorStudio() {
       localStorage.setItem('ep_cdjCount_v2', cdjCount);
       localStorage.setItem('ep_socials_v2', JSON.stringify(socials));
       localStorage.setItem('ep_media_v2', JSON.stringify(media));
+
+      if (techRiderPdf) {
+        localStorage.setItem('ep_techRiderPdf_v2', techRiderPdf);
+      } else {
+        localStorage.removeItem('ep_techRiderPdf_v2');
+      }
 
       if (profilePic) {
         localStorage.setItem('ep_profilePic_v2', profilePic);
@@ -141,7 +188,7 @@ function CreatorStudio() {
     } catch (error) {
       console.warn('LocalStorage quota exceeded or error:', error);
     }
-  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic, isPro, monitoring, tableSpecs, otherTech]);
+  }, [artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, socials, media, profilePic, isPro, monitoring, tableSpecs, otherTech, techRiderPdf, theme, stats, supportedBy]);
 
   // Check Firestore isPro status when slug changes
   useEffect(() => {
@@ -160,6 +207,8 @@ function CreatorStudio() {
     setArtistName('');
     setArtistConcept('');
     setBio('');
+    setStats([{ label: '', value: '' }, { label: '', value: '' }, { label: '', value: '' }]);
+    setSupportedBy('');
     setHospitality('');
     setMonitoring('');
     setTableSpecs('');
@@ -169,6 +218,7 @@ function CreatorStudio() {
     setProfilePic(null);
     setSocials({ instagram: '', soundcloud: '', twitter: '', youtube: '' });
     setMedia([]);
+    setTechRiderPdf(null);
     setIsPro(false);
     setSavedLink(null);
 
@@ -184,8 +234,11 @@ function CreatorStudio() {
     localStorage.removeItem('ep_cdjCount_v2');
     localStorage.removeItem('ep_socials_v2');
     localStorage.removeItem('ep_media_v2');
+    localStorage.removeItem('ep_techRiderPdf_v2');
     localStorage.removeItem('ep_profilePic_v2');
     localStorage.removeItem('ep_isPro_v2');
+    localStorage.removeItem('ep_theme_v2');
+    setTheme({ accentColor: '#ff1744', backgroundImage: null, templateId: 'neon' });
   };
 
   // Detect Logout
@@ -218,6 +271,8 @@ function CreatorStudio() {
           if (data.photoURL) setProfilePic(data.photoURL);
           if (data.socials) setSocials(data.socials);
           if (data.media) setMedia(data.media);
+          if (data.techRiderPdf) setTechRiderPdf(data.techRiderPdf);
+          if (data.theme) setTheme(data.theme);
           if (data.isPro) setIsPro(true);
         }
       });
@@ -437,6 +492,40 @@ function CreatorStudio() {
     setSocials(prev => ({ ...prev, [key]: e.target.value }));
   };
 
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      return alert('Only PDF files are allowed.');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return alert('PDF file size must be under 5MB.');
+    }
+
+    if (!currentUser) {
+      if (confirm("You must be logged in to upload a Tech Rider PDF. Sign in with Google now?")) {
+        try { await loginWithGoogle(); } catch (e) { alert("Login failed."); }
+      }
+      return;
+    }
+
+    // Pro Feature: Tech Rider PDF
+    if (!checkProFeature('Tech Rider PDF')) return;
+
+    setUploadingPdf(true);
+    try {
+      const url = await uploadTechRiderPdf(file, currentUser.uid);
+      setTechRiderPdf(url);
+      alert('PDF uploaded successfully! Don\'t forget to Save Changes.');
+    } catch (err) {
+      console.error(err);
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!currentUser) {
       if (confirm("You must be logged in to save and manage your presskit. Sign in with Google now?")) {
@@ -458,7 +547,7 @@ function CreatorStudio() {
       youtube: ensureHttps(socials.youtube),
     };
     const payloadString = JSON.stringify({
-      artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
+      artistName, artistConcept, bio, stats, supportedBy, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media
     });
     const sizeInChars = payloadString.length;
     const sizeInMB = sizeInChars / (1024 * 1024);
@@ -468,11 +557,27 @@ function CreatorStudio() {
       return;
     }
     try {
+      // Upload background image to Storage if it's a base64 data URL
+      let themeToSave = { ...theme };
+      if (theme.backgroundImage && theme.backgroundImage.startsWith('data:')) {
+        try {
+          const bgUrl = await uploadBackgroundImage(theme.backgroundImage, currentUser.uid);
+          themeToSave.backgroundImage = bgUrl;
+          // Update local state with the Storage URL so future saves don't re-upload
+          setTheme(prev => ({ ...prev, backgroundImage: bgUrl }));
+        } catch (uploadErr) {
+          console.error('Background image upload failed:', uploadErr);
+          // Continue saving without the background image rather than blocking
+          themeToSave.backgroundImage = null;
+        }
+      }
+
       const savePromise = savePresskit({
-        artistName, artistConcept, bio, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media,
-        monitoring, tableSpecs, otherTech,
+        artistName, artistConcept, bio, stats, supportedBy, hospitality, selectedGear, cdjCount, profilePic, socials: sanitizedSocials, media,
+        monitoring, tableSpecs, otherTech, techRiderPdf,
         ownerId: currentUser.uid,
-        ownerEmail: currentUser.email
+        ownerEmail: currentUser.email,
+        theme: themeToSave
       });
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Connection timed out.')), 90000);
@@ -487,6 +592,16 @@ function CreatorStudio() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const previewData = {
+    profilePic, artistName, artistConcept, bio,
+    stats,
+    selectedGear, cdjCount, tableSpecs, monitoring, otherTech,
+    hospitality, socials,
+    media,
+    supportedBy,
+    theme
   };
 
   return (
@@ -535,7 +650,7 @@ function CreatorStudio() {
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
               <div style={{
                 width: '130px', height: '130px',
-                border: `2px dashed ${ACCENT}`,
+                border: `2px solid ${ACCENT}`,
                 margin: '0 auto 0.8rem', borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 overflow: 'hidden',
@@ -560,6 +675,49 @@ function CreatorStudio() {
               <textarea rows="4" placeholder="Tell your story..." value={bio}
                 onChange={(e) => setBio(e.target.value)} />
             </div>
+
+            {/* ── Highlights & Stats ── */}
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: ACCENT, marginBottom: '1rem' }}>
+                <Activity size={14} /> Highlights & Stats
+              </label>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.75rem', marginBottom: '0.5rem', display: 'block', color: '#888' }}>Key Metrics (Max 3)</label>
+                {stats.map((stat, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <input
+                      type="text"
+                      placeholder="e.g. 50k"
+                      value={stat.value}
+                      onChange={(e) => {
+                        const newStats = [...stats];
+                        newStats[i].value = e.target.value;
+                        setStats(newStats);
+                      }}
+                      style={{ flex: 1 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="e.g. Monthly Listeners"
+                      value={stat.label}
+                      onChange={(e) => {
+                        const newStats = [...stats];
+                        newStats[i].label = e.target.value;
+                        setStats(newStats);
+                      }}
+                      style={{ flex: 2 }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.75rem', marginBottom: '0.5rem', display: 'block', color: '#888' }}>Supported By / Notable Mentions</label>
+                <textarea rows="2" placeholder="e.g. Carl Cox, Tale Of Us, Amelie Lens" value={supportedBy}
+                  onChange={(e) => setSupportedBy(e.target.value)} />
+              </div>
+            </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label>Hospitality Rider</label>
               <textarea rows="3" placeholder="What do you need backstage?" value={hospitality}
@@ -573,7 +731,22 @@ function CreatorStudio() {
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label>Stage / Booth Specs</label>
+              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                Stage / Booth Specs
+                <div>
+                  <button onClick={() => document.getElementById('pdf-input').click()}
+                    disabled={uploadingPdf}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '0.3rem 0.6rem',
+                      opacity: uploadingPdf ? 0.6 : 1,
+                      ...(techRiderPdf ? { background: '#4CAF50', borderColor: '#4CAF50', color: '#fff' } : {})
+                    }}>
+                    {uploadingPdf ? 'Uploading...' : (techRiderPdf ? 'Update PDF ✓' : 'Upload PDF')}
+                  </button>
+                  <input id="pdf-input" type="file" hidden accept="application/pdf" onChange={handlePdfUpload} />
+                </div>
+              </label>
               <textarea rows="2" placeholder="e.g. Table Height 100cm, Vibration-free, Min width 2m" value={tableSpecs}
                 onChange={(e) => setTableSpecs(e.target.value)} />
             </div>
@@ -583,12 +756,146 @@ function CreatorStudio() {
               <textarea rows="2" placeholder="Power, Lighting, Network, Security..." value={otherTech}
                 onChange={(e) => setOtherTech(e.target.value)} />
             </div>
+
+            {/* ── Visuals ── */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ marginBottom: '0.7rem' }}>Visuals</label>
+              
+              <div style={{ marginBottom: '1.2rem' }}>
+                <label style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.4rem', display: 'block' }}>Template Design</label>
+                <select
+                  value={theme.templateId || 'neon'}
+                  onChange={(e) => setTheme(prev => ({ ...prev, templateId: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: '#fff', fontSize: '0.9rem',
+                    fontFamily: 'Orbitron, sans-serif', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer'
+                  }}
+                >
+                  <option value="neon" style={{background: '#111'}}>Neon / Cyberpunk</option>
+                  <option value="minimal" style={{background: '#111'}}>Minimal / Editorial</option>
+                  <option value="brutalist" style={{background: '#111'}}>Brutalist / Raw</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '140px' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.4rem', display: 'block' }}>Accent Color</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="color"
+                      value={theme.accentColor}
+                      onChange={(e) => setTheme(prev => ({ ...prev, accentColor: e.target.value }))}
+                      style={{
+                        width: '40px', height: '40px', padding: 0, border: 'none',
+                        borderRadius: '4px', cursor: 'pointer', background: 'none'
+                      }}
+                    />
+                    <span style={{ fontSize: '0.85rem', color: '#ccc' }}>{theme.accentColor}</span>
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, minWidth: '140px' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.4rem', display: 'block' }}>
+                    Background Image {!isPro && '(Pro)'}
+                  </label>
+                  {theme.backgroundImage ? (
+                    <div style={{
+                      width: '100%', height: '40px', background: '#222', borderRadius: '4px',
+                      display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0 0.5rem 0 1rem',
+                    }}>
+                      <span style={{ fontSize: '0.75rem', color: '#fff', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>✓ Background Set</span>
+                      <button
+                        onClick={() => setTheme(prev => ({ ...prev, backgroundImage: null }))}
+                        style={{
+                          width: '28px', height: '28px', flexShrink: 0,
+                          background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none',
+                          borderRadius: '4px', cursor: 'pointer', fontSize: '1rem',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>×</button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        if (!isPro) {
+                          setPaywallFeature('Custom Backgrounds');
+                          setShowPaywall(true);
+                          return;
+                        }
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+
+                          // Simple size check (2MB) before processing/uploading
+                          // Ideally we would compress/upload to Firestore like profile pic
+                          if (file.size > 2 * 1024 * 1024) {
+                            alert('Please use an image under 2MB.');
+                            return;
+                          }
+
+                          // Read as DataURL for simplicity (Firestore limit is 1MB, so this might be tight for large BGs)
+                          // Better: Reuse image compression logic or upload to Storage (if enabled)
+                          // For now, let's use the same compression logic as Profile Pic if possible
+                          // Or just read as base64 and pray it fits (risky)
+                          // Let's implement a quick client-side resize to 1920px max width/height
+
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const img = new Image();
+                            img.onload = () => {
+                              const canvas = document.createElement('canvas');
+                              let width = img.width;
+                              let height = img.height;
+                              const MAX_SIZE = 1920;
+
+                              if (width > height) {
+                                if (width > MAX_SIZE) {
+                                  height *= MAX_SIZE / width;
+                                  width = MAX_SIZE;
+                                }
+                              } else {
+                                if (height > MAX_SIZE) {
+                                  width *= MAX_SIZE / height;
+                                  height = MAX_SIZE;
+                                }
+                              }
+
+                              canvas.width = width;
+                              canvas.height = height;
+                              const ctx = canvas.getContext('2d');
+                              ctx.drawImage(img, 0, 0, width, height);
+
+                              const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // Aggressive compression for BG
+                              setTheme(prev => ({ ...prev, backgroundImage: dataUrl }));
+                            };
+                            img.src = event.target.result;
+                          };
+                          reader.readAsDataURL(file);
+                        };
+                        input.click();
+                      }}
+                      style={{
+                        width: '100%', height: '40px', borderRadius: '4px',
+                        border: '1px dashed #444', background: 'transparent',
+                        color: isPro ? '#888' : '#666', fontSize: '0.8rem', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem'
+                      }}
+                    >
+                      <Camera size={14} /> Upload
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ marginBottom: '0.7rem' }}>Social Links</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <SocialInput icon={Instagram} placeholder="https://instagram.com/..." value={socials.instagram} onChange={updateSocial('instagram')} color="#E1306C" />
-                <SocialInput icon={Music} placeholder="https://soundcloud.com/..." value={socials.soundcloud} onChange={updateSocial('soundcloud')} color="#ff5500" />
-                <SocialInput icon={Twitter} placeholder="https://x.com/..." value={socials.twitter} onChange={updateSocial('twitter')} color="#999" />
+                <SocialInput icon={SoundCloudLogo} placeholder="https://soundcloud.com/..." value={socials.soundcloud} onChange={updateSocial('soundcloud')} color="#ff5500" />
+                <SocialInput icon={XLogo} placeholder="https://x.com/..." value={socials.twitter} onChange={updateSocial('twitter')} color="#999" />
                 <SocialInput icon={Youtube} placeholder="https://youtube.com/..." value={socials.youtube} onChange={updateSocial('youtube')} color="#FF0000" />
               </div>
             </div>
@@ -616,7 +923,7 @@ function CreatorStudio() {
                   }}
                   style={{ padding: '0.5rem', fontSize: '0.8rem' }}
                 >
-                  Add Release
+                  ADD
                 </button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
@@ -629,7 +936,7 @@ function CreatorStudio() {
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
                         {item.type === 'youtube' && <Youtube size={16} color="#FF0000" />}
-                        {item.type === 'soundcloud' && <Music size={16} color="#ff5500" />}
+                        {item.type === 'soundcloud' && <SoundCloudLogo size={16} color="#ff5500" />}
                         <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
                           {item.url.substring(0, 40)}...
                         </span>
@@ -644,7 +951,7 @@ function CreatorStudio() {
               <div style={{ marginBottom: '0.8rem' }}>
                 <button onClick={() => document.getElementById('media-upload').click()}
                   style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px dashed #444' }}>
-                  + Upload Photo (Limit 2MB)
+                  {isPro ? '+ Upload Photo' : '+ Upload Photo (Limit 2MB)'}
                 </button>
                 <input id="media-upload" type="file" hidden onChange={handleMediaUpload} accept="image/*" />
               </div>
@@ -674,7 +981,14 @@ function CreatorStudio() {
           </section>
 
           {/* ── RIGHT: Live Preview ── */}
-          <section className="glass-panel accent-border">
+          <section className="glass-panel accent-border" style={{
+            background: 'var(--bg)',
+            color: '#fff',
+            backgroundImage: theme.backgroundImage && theme.templateId !== 'minimal'
+              ? `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${theme.backgroundImage}) center/cover no-repeat`
+              : undefined,
+            backgroundAttachment: 'local'
+          }}>
             <div style={{
               position: 'relative',
               padding: '2rem 1.5rem',
@@ -697,7 +1011,7 @@ function CreatorStudio() {
                 ) : (
                   <div style={{
                     width: '80px', height: '80px', borderRadius: '50%',
-                    background: '#1a1a1a', border: `2px dashed #333`, flexShrink: 0,
+                    background: '#1a1a1a', border: `2px solid #333`, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <User size={24} color="#444" />
@@ -705,15 +1019,15 @@ function CreatorStudio() {
                 )}
                 <div>
                   <h2 style={{
-                    fontFamily: 'var(--font-display)', fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
-                    fontWeight: 900, color: '#fff', letterSpacing: '0.05em', lineHeight: 1.1,
+                    fontFamily: 'var(--tpl-font-display)', fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
+                    fontWeight: 900, color: 'var(--tpl-text-main)', letterSpacing: '0.05em', lineHeight: 1.1,
                   }}>
                     {artistName || 'ARTIST NAME'}
                   </h2>
                   {artistConcept && (
                     <p style={{
-                      fontFamily: 'var(--font-display)', fontSize: '0.6rem',
-                      letterSpacing: '0.15em', color: '#999', marginTop: '0.3rem',
+                      fontFamily: 'var(--tpl-font-display)', fontSize: '0.6rem',
+                      letterSpacing: '0.15em', color: 'var(--tpl-text-muted)', marginTop: '0.3rem',
                     }}>
                       {artistConcept.toUpperCase()}
                     </p>
@@ -780,7 +1094,7 @@ function CreatorStudio() {
                 <div className="section-title">Follow</div>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   {socials.instagram && <a href={ensureHttps(socials.instagram)} target="_blank" rel="noopener noreferrer" style={{ color: '#E1306C' }}><Instagram size={22} /></a>}
-                  {socials.soundcloud && <a href={ensureHttps(socials.soundcloud)} target="_blank" rel="noopener noreferrer" style={{ color: '#ff5500' }}><Music size={22} /></a>}
+                  {socials.soundcloud && <a href={ensureHttps(socials.soundcloud)} target="_blank" rel="noopener noreferrer" style={{ color: '#ff5500' }}><SoundCloudLogo size={22} /></a>}
                   {socials.twitter && <a href={ensureHttps(socials.twitter)} target="_blank" rel="noopener noreferrer" style={{ color: '#fff' }}><Twitter size={22} /></a>}
                   {socials.youtube && <a href={ensureHttps(socials.youtube)} target="_blank" rel="noopener noreferrer" style={{ color: '#FF0000' }}><Youtube size={22} /></a>}
                 </div>
@@ -808,20 +1122,24 @@ function CreatorStudio() {
                   }}
                 >
                   <p style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.5rem' }}>✓ Presskit saved!</p>
-                  <a href={savedLink} target="_blank" rel="noopener noreferrer"
-                    style={{ color: ACCENT, wordBreak: 'break-all', fontSize: '0.8rem', textDecoration: 'underline' }}>
-                    {savedLink}
-                  </a>
-                  <button style={{ marginTop: '0.75rem', width: '100%', fontSize: '0.7rem', padding: '0.5rem' }}
-                    onClick={() => { navigator.clipboard.writeText(savedLink); alert('Link copied!'); }}>
-                    📋 Copy Link
-                  </button>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+                    <button style={{ width: '100%', fontSize: '0.7rem', padding: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                      onClick={() => { navigator.clipboard.writeText(savedLink); alert('Full Link copied! Contains all tech requirements.'); }}>
+                      <Share2 size={14} /> Copy Full EPK Link
+                    </button>
+
+                    <button style={{ width: '100%', fontSize: '0.7rem', padding: '0.6rem', background: 'transparent', border: `1px solid ${ACCENT}`, color: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                      onClick={() => { navigator.clipboard.writeText(savedLink + '?mode=public'); alert('Public Link copied! Technical and hospitality riders are hidden.'); }}>
+                      <Share2 size={14} /> Copy Public EPK Link (Hidden Riders)
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </div>
           </section>
         </div>
-      </main>
+      </main >
 
       <footer style={{ textAlign: 'center', padding: '2rem', color: '#333', fontSize: '0.75rem', borderTop: '1px solid var(--border)', marginTop: '2rem' }}>
 
@@ -834,7 +1152,7 @@ function CreatorStudio() {
 
         <p>© 2026 EasyPresskit — Modern Artist Solutions</p>
       </footer>
-    </div>
+    </div >
   );
 }
 

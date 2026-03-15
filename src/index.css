@@ -1,6 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&family=Rajdhani:wght@300;400;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
 
 :root {
+  /* Editor Base (Defaults to Neon style aesthetics) */
   --bg-dark: #0a0a0a;
   --bg-card: #111111;
   --accent: #ff1744;
@@ -13,6 +14,210 @@
   --font-display: 'Orbitron', sans-serif;
   --font-body: 'Rajdhani', sans-serif;
 }
+
+/* ───────── TEMPLATE SYSTEM ───────── */
+
+/* 1. NEON / CYBERPUNK (Default) */
+.epk-template-neon {
+  --tpl-bg: #0a0a0a;
+  --tpl-bg-header: #050505;
+  --tpl-bg-card: rgba(255,255,255,0.02);
+  --tpl-text-main: #e0e0e0;
+  --tpl-font-display: 'Orbitron', sans-serif;
+  --tpl-font-body: 'Rajdhani', sans-serif;
+  --tpl-border: rgba(255,255,255,0.08);
+  --tpl-text-dim: #bbb;
+  --tpl-text-muted: #888;
+  --tpl-btn-bg: rgba(255,255,255,0.03);
+  --tpl-btn-border: rgba(255,255,255,0.08);
+  --tpl-btn-hover: rgba(255,255,255,0.1);
+}
+
+.epk-template-neon h1 { 
+  text-shadow: 0 0 10px var(--accent-glow), 0 0 30px var(--accent-glow); 
+  letter-spacing: 0.1em;
+}
+.epk-template-neon h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 8px var(--accent-glow);
+}
+.epk-template-neon section { 
+  background: var(--tpl-bg-card); 
+  border: 1px solid var(--tpl-border);
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.01);
+  margin-bottom: 3rem;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.epk-template-neon section:hover {
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 40px rgba(0,0,0,0.6), 0 0 15px var(--accent-glow);
+}
+.epk-template-neon section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(180deg, var(--accent) 0%, transparent 100%);
+  box-shadow: 2px 0 10px var(--accent-glow);
+}
+
+/* 2. MINIMAL / EDITORIAL */
+.epk-template-minimal {
+  --tpl-bg: #ffffff;
+  --tpl-bg-header: #ffffff;
+  --tpl-bg-card: transparent;
+  --tpl-text-main: #111111;
+  --tpl-font-display: 'Outfit', sans-serif;
+  --tpl-font-body: 'Inter', sans-serif;
+  --tpl-border: rgba(0,0,0,0.1);
+  --tpl-text-dim: #444444;
+  --tpl-text-muted: #888888;
+  --tpl-btn-bg: transparent;
+  --tpl-btn-border: #111111;
+  --tpl-btn-hover: rgba(0,0,0,0.03);
+}
+
+.epk-template-minimal h1, .epk-template-minimal h2, .epk-template-minimal p, .epk-template-minimal div {
+  color: var(--tpl-text-main) !important;
+}
+.epk-template-minimal header > div {
+  background: transparent !important;
+  padding-top: 8rem !important;
+}
+.epk-template-minimal h1 {
+  text-transform: none !important;
+  letter-spacing: -0.03em !important;
+  font-weight: 400 !important;
+  font-size: clamp(3rem, 6vw, 5rem) !important;
+  line-height: 1.1 !important;
+}
+.epk-template-minimal section {
+  border-top: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 4rem;
+  background: transparent;
+  border-radius: 0;
+}
+.epk-template-minimal h2 {
+  font-size: 0.85rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.25em !important;
+  border-bottom: 1px solid var(--tpl-border) !important;
+  margin-bottom: 2.5rem !important;
+  padding-bottom: 1rem !important;
+  font-family: var(--tpl-font-body) !important;
+  font-weight: 500 !important;
+  color: var(--tpl-text-main) !important;
+  display: block !important;
+}
+.epk-template-minimal p {
+  font-size: 1.05rem !important;
+  line-height: 2 !important;
+  font-weight: 300 !important;
+  color: var(--tpl-text-dim) !important;
+}
+.epk-template-minimal header img {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+  filter: grayscale(100%) contrast(1.1);
+}
+.epk-template-minimal .print-only p { color: #888 !important; }
+
+/* 3. BRUTALIST / RAW */
+.epk-template-brutalist {
+  --tpl-bg: #ececec;
+  --tpl-bg-header: #ffffff;
+  --tpl-bg-card: #ffffff;
+  --tpl-text-main: #000000;
+  --tpl-font-display: 'Syne', sans-serif;
+  --tpl-font-body: 'Space Mono', monospace;
+  --tpl-border: #000000;
+  --tpl-text-dim: #222;
+  --tpl-text-muted: #444;
+  --tpl-btn-bg: #ffffff;
+  --tpl-btn-border: #000000;
+  --tpl-btn-hover: var(--accent);
+}
+
+.epk-template-brutalist h1, .epk-template-brutalist h2, .epk-template-brutalist p, .epk-template-brutalist div, .epk-template-brutalist span {
+  color: var(--tpl-text-main) !important;
+}
+.epk-template-brutalist header > div {
+  background: var(--accent) !important;
+  border-bottom: 4px solid #000;
+}
+.epk-template-brutalist h1 {
+  font-size: clamp(2rem, 11vw, 7rem) !important;
+  letter-spacing: -0.05em !important;
+  line-height: 0.8 !important;
+  color: #000 !important;
+  text-transform: uppercase !important;
+  margin-top: -1rem;
+}
+/* Force profile image to overlap text aggressively */
+.epk-template-brutalist header img {
+  border: 6px solid #000 !important;
+  box-shadow: 12px 12px 0 #000 !important;
+  position: relative;
+  z-index: 10;
+  margin-bottom: -1rem;
+}
+/* Ensure the flex container stacks correctly */
+.epk-template-brutalist header .epk-hero-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+}
+.epk-template-brutalist header .epk-hero-content > div {
+  margin-top: 0;
+  width: 100%;
+}
+.epk-template-brutalist section {
+  background: var(--tpl-bg-card);
+  border: 4px solid var(--tpl-border);
+  box-shadow: 12px 12px 0px var(--tpl-border);
+  border-radius: 0;
+  padding: 3rem 2rem;
+  margin-bottom: 5rem !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.epk-template-brutalist section:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 16px 16px 0px var(--accent);
+}
+.epk-template-brutalist h2 {
+  background: var(--tpl-text-main);
+  color: var(--tpl-bg) !important;
+  padding: 0.5rem 1rem !important;
+  display: inline-block;
+  font-size: 1.4rem !important;
+  letter-spacing: -0.05em !important;
+  border: none !important;
+  transform: rotate(-3deg);
+  margin-top: -4.5rem;
+  margin-bottom: 2rem !important;
+}
+.epk-template-brutalist img, .epk-template-brutalist iframe, .epk-template-brutalist .epk-brutalist-card {
+  border: 4px solid var(--tpl-border) !important;
+  box-shadow: 8px 8px 0 var(--tpl-border) !important;
+  border-radius: 0 !important;
+  transition: box-shadow 0.2s;
+}
+.epk-template-brutalist img:hover, .epk-template-brutalist iframe:hover, .epk-template-brutalist .epk-brutalist-card:hover {
+  box-shadow: 12px 12px 0 var(--accent) !important;
+}
+
+/* ───────── BASE HTML ───────── */
 
 * {
   box-sizing: border-box;
@@ -364,6 +569,7 @@ label {
     font-size: 1rem;
   }
 }
+
 /* ── Neon Button ── */
 .neon-button {
   --neon-color: var(--accent);
@@ -380,4 +586,77 @@ label {
   color: #000;
   box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color);
   text-shadow: none;
+}
+
+/* ── Print Styles for PDF Export ── */
+@media print {
+
+  /* Reset colors for printing */
+  body,
+  html,
+  #root,
+  .app-container {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide specific elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Adjust typography for print */
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  span,
+  div {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  /* Special handling for accent colors (keep them but printable) */
+  .accent-text,
+  h2 {
+    color: #333333 !important;
+    /* Darker accent for contrast on white */
+    border-bottom-color: #333333 !important;
+  }
+
+  /* Remove backgrounds, shadows, and borders from blocks */
+  section,
+  div {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: #dddddd !important;
+  }
+
+  /* Page Break Handling */
+  .print-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .print-break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Adjust spacing to fit more on a page */
+  section {
+    margin-bottom: 2rem !important;
+  }
+
+  header {
+    padding: 0 !important;
+    padding-top: 2rem !important;
+    background: none !important;
+  }
 }

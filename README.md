@@ -1,16 +1,32 @@
-# React + Vite
+# EasyPresskit
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+EasyPresskit is a web application designed to help DJs, producers, and artists create professional Electronic Press Kits (EPKs) effortlessly. 
 
-Currently, two official plugins are available:
+## Features
+- **3D DJ Booth Editor**: Interactive tool to specify and visualize technical riders (CDJs, Mixers, Monitors).
+- **Dynamic Themes**: Customizable accent colors and background images (saved via Firebase Storage).
+- **Stats & Reach**: Display key metrics (e.g., Spotify Listeners, Instagram followers) and artist support lists.
+- **Targeted Sharing**: Generate "Full" links for booking agents or "Public" links that automatically hide sensitive riders and direct contact info.
+- **PDF Export**: Clean, print-optimized document generation straight from the browser.
+- **Media Delivery**: One-click `.zip` downloads for all press photos and logos.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Changelog
+All notable changes to this project are documented in the [CHANGELOG.md](./CHANGELOG.md) file.
+Please ensure you update the changelog whenever pushing new features or fixing notable bugs.
 
-## React Compiler
+## Development Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The project uses React, Vite, Three.js (React Three Fiber), and Firebase.
 
-## Expanding the ESLint configuration
+### Running locally:
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Deployment
+Ensure `npm run build` passes without errors.
+Deploy to Firebase Hosting using:
+```bash
+firebase deploy --only hosting
+```

@@ -1,5 +1,5 @@
 import React, { useRef, Suspense, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { useGLTF, RoundedBox, Center } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -63,6 +63,8 @@ export const DJMV10GLTFModel = ({ hovered, position = [0, 0, 0], scale = 1 }) =>
         </group>
     );
 };
+
+
 
 export const GenericMixerModel = ({ hovered }) => {
     const groupRef = useRef();
@@ -133,6 +135,8 @@ const DJMV10BoothUnit = ({ position }) => {
     );
 };
 
+
+
 const GenericMixerBooth = ({ position }) => (
     <group position={position} scale={0.5}>
         <RoundedBox args={[1.3, 0.2, 2.0]} radius={0.03} smoothness={4}>
@@ -165,12 +169,15 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
     const rightCdjs = Math.floor(cdjCount / 2);
 
     // Dynamic spacing logic:
-    // mixerOffset: Distance from center to the first CDJ (depends on mixer width)
-    // playerSpacing: Distance between adjacent CDJs (constant)
-    const mixerOffset = mixer?.id === 'v10' ? 3.8 : 3.2;
+    // mixerOffset: Distance from center to the first CDJ/turntable (depends on mixer width)
+    // playerSpacing: Distance between adjacent players (constant)
+    const baseMixerOffset = mixer?.id === 'v10' ? 3.8 : 3.2;
+    const mixerOffset = baseMixerOffset;
     const playerSpacing = 3.2;
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+
+    const PlayerUnitComponent = CDJBoothUnit;
 
     return (
         <div style={{
@@ -196,9 +203,11 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
                     {hasPlayer || hasMixer ? `${cdjCount}x CDJ ${mixer ? `+ ${mixer.name}` : ''}` : 'Empty Booth'}
                 </span>
             </div>
-
             <div style={{ height: isMobile ? '220px' : '260px' }}>
-                <Canvas camera={{ position: [0, 6, 10], fov: 45 }}>
+                <Canvas camera={{
+                    position: isMobile ? [0, 6.5, 12.5] : [0, 6, 10],
+                    fov: isMobile ? (cdjCount > 2 ? 50 : 45) : 45
+                }}>
                     <ambientLight intensity={1} />
                     <directionalLight position={[5, 6, 5]} intensity={0.8} />
                     <directionalLight position={[-3, 4, -3]} intensity={0.3} />
@@ -217,7 +226,7 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
                             // i=0 is far left, i=length-1 is closest to mixer
                             const distanceIndex = leftCdjs - 1 - i;
                             const xPos = -(mixerOffset + (distanceIndex * playerSpacing));
-                            return <CDJBoothUnit key={`l-${i}`} position={[xPos, 0, 0]} />;
+                            return <PlayerUnitComponent key={`l-${i}`} position={[xPos, 0, 0]} />;
                         })}
 
                         {/* Render MIXER */}
@@ -235,7 +244,7 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
                         {hasPlayer && Array.from({ length: rightCdjs }).map((_, i) => {
                             // i=0 is closest to mixer
                             const xPos = mixerOffset + (i * playerSpacing);
-                            return <CDJBoothUnit key={`r-${i}`} position={[xPos, 0, 0]} />;
+                            return <PlayerUnitComponent key={`r-${i}`} position={[xPos, 0, 0]} />;
                         })}
                     </Suspense>
                 </Canvas>
