@@ -162,7 +162,6 @@
   color: #000 !important;
   text-transform: uppercase !important;
   margin-top: 0 !important;
-  text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
 }
 /* Force profile image to overlap text aggressively */
 .epk-template-brutalist header img {
@@ -172,29 +171,30 @@
   z-index: 10;
   margin-bottom: 0 !important;
 }
-/* Hero container as row to allow horizontal overlap */
+/* Hero container as row to allow horizontal layout */
 .epk-template-brutalist header .epk-hero-content {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 0 !important;
+  gap: 2rem !important;
   flex-wrap: wrap !important;
 }
-/* The text div overlaps the image, rendering ON TOP */
+/* The text div next to the image */
 .epk-template-brutalist header img + div {
   position: relative;
   z-index: 20;
-  margin-left: -2rem;
+  margin-left: 0;
 }
 
 @media (max-width: 600px) {
   .epk-template-brutalist header .epk-hero-content {
     flex-direction: column !important;
     align-items: flex-start !important;
+    gap: 1.5rem !important;
   }
   .epk-template-brutalist header img + div {
     margin-left: 0;
-    margin-top: -2rem;
+    margin-top: 0;
   }
 }
 .epk-template-brutalist header .epk-hero-content > div {
