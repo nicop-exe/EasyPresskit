@@ -379,7 +379,8 @@ function CreatorStudio() {
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) return alert('File too large (max 5MB source)');
+      const maxSourceSize = isPro ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSourceSize) return alert(`File too large (max ${isPro ? '15MB' : '5MB'} source)`);
 
       const reader = new FileReader();
 
