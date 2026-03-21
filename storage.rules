@@ -20,5 +20,17 @@ service firebase.storage {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
     }
+
+    // Profile Pictures (Pro): Public Read, Write only by Owner, max 10MB
+    match /profile-pics/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+
+    // Gallery Images (Pro): Public Read, Write only by Owner, max 10MB
+    match /gallery/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
   }
 }

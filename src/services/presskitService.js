@@ -57,6 +57,44 @@ export async function uploadBackgroundImage(base64DataUrl, ownerId) {
 }
 
 /**
+ * Upload Profile Image to Firebase Storage (Pro users).
+ * Accepts a File object, uploads it, returns download URL.
+ */
+export async function uploadProfileImage(file, ownerId) {
+    if (!ownerId) throw new Error("User must be logged in to upload files.");
+
+    const timestamp = Date.now();
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `profile-pics/${ownerId}/${timestamp}-profile.${ext}`;
+    const storageRef = ref(storage, path);
+
+    console.log(`Uploading profile image to ${path}...`);
+    const snapshot = await uploadBytes(storageRef, file);
+    console.log('Profile image upload complete, getting URL...');
+    const url = await getDownloadURL(snapshot.ref);
+    return url;
+}
+
+/**
+ * Upload Gallery Image to Firebase Storage (Pro users).
+ * Accepts a File object, uploads it, returns download URL.
+ */
+export async function uploadGalleryImage(file, ownerId) {
+    if (!ownerId) throw new Error("User must be logged in to upload files.");
+
+    const timestamp = Date.now();
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `gallery/${ownerId}/${timestamp}-gallery.${ext}`;
+    const storageRef = ref(storage, path);
+
+    console.log(`Uploading gallery image to ${path}...`);
+    const snapshot = await uploadBytes(storageRef, file);
+    console.log('Gallery image upload complete, getting URL...');
+    const url = await getDownloadURL(snapshot.ref);
+    return url;
+}
+
+/**
  * Save a presskit to Firestore (and photo as base64).
  * Returns { slug }.
  */

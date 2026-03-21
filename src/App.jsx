@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { generateUniqueStyle } from './utils/uniqueness';
 import { TechRider } from './components/TechRider';
 import { PresskitView } from './components/PresskitView';
-import { savePresskit, checkProStatus, getUserPresskit, uploadBackgroundImage } from './services/presskitService';
+import { savePresskit, checkProStatus, getUserPresskit, uploadBackgroundImage, uploadProfileImage, uploadGalleryImage } from './services/presskitService';
 import { Camera, FileText, User, Share2, Loader, Instagram, Youtube, Music, Twitter, Activity } from 'lucide-react';
 import { PricingCard } from './components/PricingCard';
 import { PaywallModal } from './components/PaywallModal';
@@ -311,119 +311,133 @@ function CreatorStudio() {
     setSelectedGear(prev => prev.includes(name) ? prev.filter(g => g !== name) : [...prev, name]);
   };
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Free Tier: Max 2MB check
-      if (!isPro && file.size > 2 * 1024 * 1024) {
-        alert('Free Plan Limit: Please upload images smaller than 2MB or Upgrade to Pro.');
-        setPaywallFeature('High-Res Profile Photo');
-        setShowPaywall(true);
-        return;
+    if (!file) return;
+
+    // Pro users: upload directly to Firebase Storage (up to 10MB)
+    if (isPro && currentUser) {
+      if (file.size > 10 * 1024 * 1024) {
+        return alert('File too large (max 10MB).');
       }
-
-      const reader = new FileReader();
-
-      // Smart Compression: If original is already < 200KB, don't re-encode
-      if (file.size < 200 * 1024) {
-        console.log('Using small profile pic directly:', (file.size / 1024).toFixed(2), 'KB');
-        reader.onload = (event) => setProfilePic(event.target.result);
-        reader.readAsDataURL(file);
-        return;
+      try {
+        setProfilePic('uploading'); // Show loading state
+        const url = await uploadProfileImage(file, currentUser.uid);
+        setProfilePic(url);
+        console.log('Profile pic uploaded to Storage:', url);
+      } catch (err) {
+        console.error('Profile upload failed:', err);
+        alert('Upload failed: ' + err.message);
+        setProfilePic(null);
       }
-
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          // Pro: 1600px, Free: 800px
-          const MAX_SIZE = isPro ? 1600 : 800;
-
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          // Pro: 0.8, Free: 0.6
-          const quality = isPro ? 0.8 : 0.6;
-          const dataUrl = canvas.toDataURL('image/jpeg', quality);
-          setProfilePic(dataUrl);
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
+      return;
     }
+
+    // Free Tier: Max 2MB check
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Free Plan Limit: Please upload images smaller than 2MB or Upgrade to Pro.');
+      setPaywallFeature('High-Res Profile Photo');
+      setShowPaywall(true);
+      return;
+    }
+
+    const reader = new FileReader();
+
+    // Smart Compression: If original is already < 200KB, don't re-encode
+    if (file.size < 200 * 1024) {
+      console.log('Using small profile pic directly:', (file.size / 1024).toFixed(2), 'KB');
+      reader.onload = (event) => setProfilePic(event.target.result);
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_SIZE = 800;
+        if (width > height) {
+          if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+        } else {
+          if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        setProfilePic(dataUrl);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleMediaUpload = (e) => {
+  const handleMediaUpload = async (e) => {
     if (media.length >= 6) { return alert('Max 6 media items allowed'); }
     const file = e.target.files[0];
-    if (file) {
-      // Free Tier: Max 2MB for gallery items too
-      if (!isPro && file.size > 2 * 1024 * 1024) {
-        alert('Free Plan Limit: Please upload images smaller than 2MB or Upgrade to Pro.');
-        setPaywallFeature('High-Res Gallery');
-        setShowPaywall(true);
-        return;
+    if (!file) return;
+
+    // Pro users: upload directly to Firebase Storage (up to 10MB)
+    if (isPro && currentUser) {
+      if (file.size > 10 * 1024 * 1024) {
+        return alert('File too large (max 10MB).');
       }
-
-      const maxSourceSize = isPro ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
-      if (file.size > maxSourceSize) return alert(`File too large (max ${isPro ? '15MB' : '5MB'} source)`);
-
-      const reader = new FileReader();
-
-      // Smart Compression: If original is already < 200KB, don't re-encode
-      if (file.size < 200 * 1024) {
-        console.log('Using small gallery pic directly:', (file.size / 1024).toFixed(2), 'KB');
-        reader.onload = (event) => setMedia(prev => [...prev, { type: 'image', url: event.target.result }]);
-        reader.readAsDataURL(file);
-        return;
+      try {
+        const url = await uploadGalleryImage(file, currentUser.uid);
+        setMedia(prev => [...prev, { type: 'image', url }]);
+        console.log('Gallery image uploaded to Storage:', url);
+      } catch (err) {
+        console.error('Gallery upload failed:', err);
+        alert('Upload failed: ' + err.message);
       }
-
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          // Pro: 1600px, Free: 1000px
-          const MAX_SIZE = isPro ? 1600 : 1000;
-
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          const quality = isPro ? 0.8 : 0.5;
-          const dataUrl = canvas.toDataURL('image/jpeg', quality);
-          setMedia(prev => [...prev, { type: 'image', url: dataUrl }]);
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
+      return;
     }
+
+    // Free Tier: Max 2MB for gallery items
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Free Plan Limit: Please upload images smaller than 2MB or Upgrade to Pro.');
+      setPaywallFeature('High-Res Gallery');
+      setShowPaywall(true);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) return alert('File too large (max 5MB source)');
+
+    const reader = new FileReader();
+
+    // Smart Compression: If original is already < 200KB, don't re-encode
+    if (file.size < 200 * 1024) {
+      console.log('Using small gallery pic directly:', (file.size / 1024).toFixed(2), 'KB');
+      reader.onload = (event) => setMedia(prev => [...prev, { type: 'image', url: event.target.result }]);
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_SIZE = 1000;
+        if (width > height) {
+          if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+        } else {
+          if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+        setMedia(prev => [...prev, { type: 'image', url: dataUrl }]);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const addYoutube = (url) => {
@@ -655,8 +669,9 @@ function CreatorStudio() {
                 margin: '0 auto 0.8rem', borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 overflow: 'hidden',
-                background: profilePic ? `url(${profilePic}) center/cover` : 'transparent',
+                background: profilePic && profilePic !== 'uploading' ? `url(${profilePic}) center/cover` : 'transparent',
               }}>
+                {profilePic === 'uploading' && <Loader size={32} color={ACCENT} className="spin" />}
                 {!profilePic && <Camera size={32} color="#555" />}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
