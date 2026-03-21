@@ -205,8 +205,10 @@ export const DJBoothPreview = ({ selectedEquipmentNames, cdjCount }) => {
             </div>
             <div style={{ height: isMobile ? '220px' : '260px' }}>
                 <Canvas camera={{
-                    position: isMobile ? [0, 6.5, 12.5] : [0, 6, 10],
-                    fov: isMobile ? (cdjCount > 2 ? 50 : 45) : 45
+                    position: isMobile
+                        ? [0, 7, cdjCount > 2 ? 15 : 13]
+                        : [0, 6, cdjCount > 2 ? 12 : 10],
+                    fov: isMobile ? (cdjCount > 2 ? 58 : 50) : 45
                 }}>
                     <ambientLight intensity={1} />
                     <directionalLight position={[5, 6, 5]} intensity={0.8} />
