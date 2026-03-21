@@ -317,8 +317,8 @@ function CreatorStudio() {
 
     // Pro users: upload directly to Firebase Storage (up to 10MB)
     if (isPro && currentUser) {
-      if (file.size > 10 * 1024 * 1024) {
-        return alert('File too large (max 10MB).');
+      if (file.size > 20 * 1024 * 1024) {
+        return alert('File too large (max 20MB).');
       }
       try {
         setProfilePic('uploading'); // Show loading state
@@ -382,8 +382,8 @@ function CreatorStudio() {
 
     // Pro users: upload directly to Firebase Storage (up to 10MB)
     if (isPro && currentUser) {
-      if (file.size > 10 * 1024 * 1024) {
-        return alert('File too large (max 10MB).');
+      if (file.size > 20 * 1024 * 1024) {
+        return alert('File too large (max 20MB).');
       }
       try {
         const url = await uploadGalleryImage(file, currentUser.uid);
