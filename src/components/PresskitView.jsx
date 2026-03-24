@@ -79,14 +79,24 @@ export const PresskitView = ({ slug, previewData = null, isPreview = false }) =>
 
     const handleDownloadMedia = async () => {
         if (!data || !data.media) return;
-        const mediaUrls = data.media.filter(m => m.type === 'image' || !m.type).map(m => m.url);
-        if (!mediaUrls.length) return;
+        const mediaItems = data.media.filter(m => m.type === 'image' || !m.type);
+        if (!mediaItems.length) return;
 
         try {
             const zip = new JSZip();
-            const promises = mediaUrls.map(async (url, i) => {
-                const response = await fetch(url);
-                const blob = await response.blob();
+            const promises = mediaItems.map(async (item, i) => {
+                const url = item.url;
+                let blob;
+                if (url.startsWith('data:')) {
+                    // Base64 data URL — convert directly
+                    const res = await fetch(url);
+                    blob = await res.blob();
+                } else {
+                    // Storage URL — fetch with CORS
+                    const res = await fetch(url, { mode: 'cors' });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    blob = await res.blob();
+                }
                 const ext = blob.type.split('/')[1] || 'jpg';
                 zip.file(`${data.artistName.replace(/[^a-zA-Z0-9]/g, '_')}_media_${i + 1}.${ext}`, blob);
             });
@@ -95,8 +105,15 @@ export const PresskitView = ({ slug, previewData = null, isPreview = false }) =>
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `${data.artistName.replace(/[^a-zA-Z0-9]/g, '_')}_Presskit_Media.zip`);
         } catch (err) {
-            console.error("Zip download failed, falling back to new tabs. Ensure CORS is configured.", err);
-            mediaUrls.forEach(url => window.open(url, '_blank'));
+            console.error("Zip download failed:", err);
+            // Fallback: open each image in a new tab
+            const storageUrls = mediaItems.filter(m => !m.url.startsWith('data:')).map(m => m.url);
+            if (storageUrls.length > 0) {
+                alert('Downloading images individually. Please allow pop-ups if prompted.');
+                storageUrls.forEach(url => window.open(url, '_blank'));
+            } else {
+                alert('Download failed. Please try again.');
+            }
         }
     };
 

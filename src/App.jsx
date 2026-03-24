@@ -376,7 +376,8 @@ function CreatorStudio() {
   };
 
   const handleMediaUpload = async (e) => {
-    if (media.length >= 6) { return alert('Max 6 media items allowed'); }
+    const mediaLimit = isPro ? 15 : 6;
+    if (media.length >= mediaLimit) { return alert(`Max ${mediaLimit} media items allowed`); }
     const file = e.target.files[0];
     if (!file) return;
 
@@ -444,7 +445,7 @@ function CreatorStudio() {
     // Pro Feature: YouTube Embeds
     if (!checkProFeature('YouTube Embeds')) return;
 
-    if (media.length >= 6) { return alert('Max 6 media items allowed'); }
+    if (media.length >= (isPro ? 15 : 6)) { return alert(`Max ${isPro ? 15 : 6} media items allowed`); }
     if (!url) return;
     let videoId = '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -461,7 +462,7 @@ function CreatorStudio() {
     // Pro Feature: SoundCloud Embeds
     if (!checkProFeature('SoundCloud Embeds')) return;
 
-    if (media.length >= 6) { return alert('Max 6 media items allowed'); }
+    if (media.length >= (isPro ? 15 : 6)) { return alert(`Max ${isPro ? 15 : 6} media items allowed`); }
     if (!input) return;
 
     let finalUrl = '';

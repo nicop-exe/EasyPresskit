@@ -10,6 +10,11 @@
             "DELETE",
             "HEAD"
         ],
+        "responseHeader": [
+            "Content-Type",
+            "Content-Disposition",
+            "Content-Length"
+        ],
         "maxAgeSeconds": 3600
     }
 ]
